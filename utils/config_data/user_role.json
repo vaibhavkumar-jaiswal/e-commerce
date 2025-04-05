@@ -1,0 +1,20 @@
+[
+     {
+          "id": "97d699c0-24ff-48dc-b64a-c29353fa8865",
+          "name": "Admin",
+          "code": "ADMIN",
+          "description": "This is a Admin role"
+     },
+     {
+          "id": "094abdac-6ec3-48d8-afab-c8d6a4c81fd7",
+          "name": "Seller",
+          "code": "SELLER",
+          "description": "This is a Seller role"
+     },
+     {
+          "id": "15e372ed-dffb-4852-98dc-c86a174d9155",
+          "name": "Customer",
+          "code": "CUSTOMER",
+          "description": "This is a Customer role"
+     }
+]

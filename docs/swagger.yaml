@@ -1,0 +1,116 @@
+basePath: /
+definitions:
+  models.ErrorResponse-string:
+    properties:
+      error:
+        type: string
+      success:
+        type: boolean
+    type: object
+  models.Login:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.LoginResponse:
+    properties:
+      expiry:
+        type: string
+      token:
+        type: string
+      user_details:
+        $ref: '#/definitions/models.UserResponse'
+    type: object
+  models.SuccessResponse-models_LoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.LoginResponse'
+      success:
+        type: boolean
+    type: object
+  models.SuccessResponse-models_UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserResponse'
+      success:
+        type: boolean
+    type: object
+  models.UserResponse:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      is_deleted:
+        type: boolean
+      last_name:
+        type: string
+      phone:
+        type: string
+      role_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: vaibhav.jaiswal@gmail.com
+    name: Vaibhav Jaiswal
+  description: This is the API documentation for Taskify
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Taskify API
+  version: "1.0"
+paths:
+  /load-data:
+    get:
+      description: Preload data from JSON files into the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse-models_UserResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-string'
+      summary: Load Data
+      tags:
+      - Preload Data
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user
+      parameters:
+      - description: Login Data
+        in: body
+        name: loginData
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse-models_LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-string'
+      summary: Login
+      tags:
+      - auth
+schemes:
+- http
+swagger: "2.0"

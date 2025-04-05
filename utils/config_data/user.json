@@ -1,0 +1,13 @@
+[
+     {
+          "first_name": "Vaibhav",
+          "last_name": "Jaiswal",
+          "email": "vk@gmail.com",
+          "phone": "8888599949",
+          "role_id": "97d699c0-24ff-48dc-b64a-c29353fa8865",
+          "is_verified": true,
+          "user_password": {
+               "password": "123"
+          }
+     }
+]
