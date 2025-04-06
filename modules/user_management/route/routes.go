@@ -2,16 +2,12 @@ package route
 
 import (
 	"e-commerce/modules/user_management/handler"
-	"e-commerce/modules/user_management/repo"
-	"e-commerce/modules/user_management/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UserManagementRoutes(router *gin.Engine) {
-	repo := repo.NewUserRepository()
-	service := service.NewUserService(repo)
-	handler := handler.NewUserHandler(service)
+	handler := handler.NewUserHandler()
 
 	router.POST("/login", handler.LoginHandler)
 	{

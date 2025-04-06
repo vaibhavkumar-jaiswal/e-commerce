@@ -57,14 +57,14 @@ type UserQueryParams struct {
 }
 
 type UserResponse struct {
-	ID        uuid.UUID `json:"user_id"`
-	FirstName string    `json:"first_name"`
-	FullName  string    `json:"full_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
-	Phone     string    `json:"phone"`
-	RoleID    uuid.UUID `json:"role_id"`
-	IsDeleted bool      `json:"is_deleted"`
+	ID        uuid.UUID `json:"user_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	FirstName string    `json:"first_name" example:"John"`
+	FullName  string    `json:"full_name" example:"John Doe"`
+	LastName  string    `json:"last_name" example:"Doe"`
+	Email     string    `json:"email" example:"john.doe@gmail.com"`
+	Phone     string    `json:"phone" example:"1234567890"`
+	RoleID    uuid.UUID `json:"role_id" example:"97d699c0-24ff-48dc-b64a-c29353fa8865"`
+	IsDeleted bool      `json:"is_deleted" example:"false"`
 }
 
 func (userList UserList) ResponseList() []UserResponse {

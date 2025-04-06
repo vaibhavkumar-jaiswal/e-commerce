@@ -25,14 +25,14 @@ type Pagination struct {
 }
 
 type Login struct {
-	UserName string `json:"username"`
-	Password string `json:"password"`
+	UserName string `json:"username" example:"john_doe"`
+	Password string `json:"password" example:"password123"`
 }
 
 type LoginResponse struct {
 	UserDetails        UserResponse `json:"user_details"`
-	AuthorizationToken string       `json:"token"`
-	Expiry             time.Time    `json:"expiry"`
+	AuthorizationToken string       `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"`
+	Expiry             time.Time    `json:"expiry" example:"2025-05-01T12:00:00Z"`
 }
 
 type JWTClaims struct {

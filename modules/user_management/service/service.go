@@ -18,9 +18,10 @@ type Service struct {
 }
 
 // NewUserService initializes a new instance of the Service struct with the provided repository.
-func NewUserService(userRepo *repo.Repo) *Service {
+func NewUserService() *Service {
+	repo := repo.NewUserRepository()
 	return &Service{
-		repo: userRepo,
+		repo: repo,
 	}
 }
 

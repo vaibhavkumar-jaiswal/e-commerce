@@ -36,7 +36,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SuccessResponse-models_UserResponse"
+                            "$ref": "#/definitions/models.SuccessResponse-string"
                         }
                     },
                     "500": {
@@ -94,10 +94,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "error message"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -105,10 +107,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "password123"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "john_doe"
                 }
             }
         },
@@ -116,10 +120,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expiry": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-05-01T12:00:00Z"
                 },
                 "token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
                 },
                 "user_details": {
                     "$ref": "#/definitions/models.UserResponse"
@@ -133,18 +139,20 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.LoginResponse"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
-        "models.SuccessResponse-models_UserResponse": {
+        "models.SuccessResponse-string": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.UserResponse"
+                    "type": "string"
                 },
                 "success": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -152,28 +160,36 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "john.doe@gmail.com"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John"
                 },
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John Doe"
                 },
                 "is_deleted": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Doe"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234567890"
                 },
                 "role_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "97d699c0-24ff-48dc-b64a-c29353fa8865"
                 },
                 "user_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
                 }
             }
         }
@@ -186,8 +202,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
-	Title:            "Taskify API",
-	Description:      "This is the API documentation for Taskify",
+	Title:            "E-Commerce API",
+	Description:      "This is the API documentation for E-Commerce",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

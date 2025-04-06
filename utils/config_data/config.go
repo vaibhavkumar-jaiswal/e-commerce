@@ -15,11 +15,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Preload data from JSON files into the database
 // @Summary      Load Data
 // @Description  Preload data from JSON files into the database
 // @Tags         Preload Data
 // @Produce      json
-// @Success      200  {object}  models.SuccessResponse[models.UserResponse]
+// @Success      200  {object}  models.SuccessResponse[string]
 // @Failure      500  {object}  models.ErrorResponse[string]
 // @Router       /load-data [get]
 func PreLoadDataHandler(context *gin.Context) {
