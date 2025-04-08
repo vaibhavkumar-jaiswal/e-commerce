@@ -135,6 +135,16 @@ func (handler *Handler) GetUsers(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, users)
 }
 
+// RegisterHandler godoc
+// @Summary      Register a new user
+// @Description  Registers a new user
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        loginData  body     models.Login  true  "Login Data"
+// @Success      200        {object} models.SuccessResponse[string]
+// @Failure      401        {object} models.ErrorResponse[string]
+// @Router       /user/register [post]
 func (handler *Handler) AddUser(context *gin.Context) {
 
 	var request models.UserRequest
@@ -144,13 +154,13 @@ func (handler *Handler) AddUser(context *gin.Context) {
 		return
 	}
 
-	users, err := handler.service.AddUser(request)
+	message, err := handler.service.AddUser(request)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	helper.ResponseWriter(context, http.StatusOK, users)
+	helper.ResponseWriter(context, http.StatusOK, message)
 }
 
 /*

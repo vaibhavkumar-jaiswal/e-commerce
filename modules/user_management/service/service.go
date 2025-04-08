@@ -223,7 +223,7 @@ func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.
 }
 
 // AddUser creates a new user in the system and sends an OTP to their email for verification.
-func (service *Service) AddUser(request models.UserRequest) (any, error) {
+func (service *Service) AddUser(request models.UserRequest) (string, error) {
 	user := models.User{
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
@@ -237,9 +237,9 @@ func (service *Service) AddUser(request models.UserRequest) (any, error) {
 	err := service.repo.Create(&user)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
-			return nil, fmt.Errorf(pgErr.Detail)
+			return "", fmt.Errorf(pgErr.Detail)
 		}
-		return nil, err
+		return "", err
 	}
 
 	otp := helper.GenerateSecureOTP()
@@ -248,7 +248,7 @@ func (service *Service) AddUser(request models.UserRequest) (any, error) {
 
 	_, err = helper.SetCache(user.Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	go func() {

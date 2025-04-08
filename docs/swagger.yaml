@@ -127,6 +127,32 @@ paths:
       summary: Login
       tags:
       - auth
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user
+      parameters:
+      - description: Login Data
+        in: body
+        name: loginData
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse-string'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse-string'
+      summary: Register a new user
+      tags:
+      - auth
 schemes:
 - http
 swagger: "2.0"
