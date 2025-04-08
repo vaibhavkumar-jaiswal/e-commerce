@@ -43,6 +43,13 @@ func LoadConfig() (*models.ConfigData, error) {
 	configData.SmtpServer.UserName = os.Getenv(constants.SMTP_USER)
 	configData.SmtpServer.Password = os.Getenv(constants.SMTP_PASSWORD)
 
+	if os.Getenv(constants.APP_ENV) == constants.LOCAL_ENV {
+		configData.SmtpServer.Port = 1025
+		configData.SmtpServer.Host = "localhost"
+		configData.SmtpServer.UserName = ""
+		configData.SmtpServer.Password = ""
+	}
+
 	return &configData, nil
 }
 

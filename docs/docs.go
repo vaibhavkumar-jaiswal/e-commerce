@@ -24,25 +24,25 @@ const docTemplate = `{
     "paths": {
         "/load-data": {
             "get": {
-                "description": "Preload data from JSON files into the database",
+                "description": "Loads static reference data (e.g., categories, roles, etc.) into the database from predefined JSON files. This is typically used during application setup or environment bootstrap.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Preload Data"
+                    "Admin"
                 ],
-                "summary": "Load Data",
+                "summary": "Preload Static Data",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Data loaded successfully from JSON files",
                         "schema": {
-                            "$ref": "#/definitions/models.SuccessResponse-string"
+                            "$ref": "#/definitions/LoadDataSuccess"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Error occurred while loading data",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse-string"
+                            "$ref": "#/definitions/InternalServerError"
                         }
                     }
                 }
@@ -50,7 +50,7 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
-                "description": "Logs in a user",
+                "description": "Authenticates a user using email and password. Returns a JWT token on successful login that can be used to authorize future requests.",
                 "consumes": [
                     "application/json"
                 ],
@@ -58,31 +58,43 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Authentication"
                 ],
-                "summary": "Login",
+                "summary": "User Login",
                 "parameters": [
                     {
-                        "description": "Login Data",
+                        "description": "User login credentials",
                         "name": "loginData",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Login"
+                            "$ref": "#/definitions/LoginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Authenticated successfully with JWT token",
                         "schema": {
-                            "$ref": "#/definitions/models.SuccessResponse-models_LoginResponse"
+                            "$ref": "#/definitions/Success-LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or malformed request body",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Invalid credentials or unauthorized access",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse-string"
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
                         }
                     }
                 }
@@ -90,7 +102,7 @@ const docTemplate = `{
         },
         "/user/register": {
             "post": {
-                "description": "Registers a new user",
+                "description": "Registers a new user account by accepting valid email and other details. On success, returns the success message. Input validation and uniqueness checks are enforced.",
                 "consumes": [
                     "application/json"
                 ],
@@ -98,31 +110,234 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "User Registration"
                 ],
-                "summary": "Register a new user",
+                "summary": "Register a New User",
                 "parameters": [
                     {
-                        "description": "Login Data",
-                        "name": "loginData",
+                        "description": "User registration payload",
+                        "name": "userDetails",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Login"
+                            "$ref": "#/definitions/UserRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Registration successful",
                         "schema": {
-                            "$ref": "#/definitions/models.SuccessResponse-string"
+                            "$ref": "#/definitions/UserRegisterSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Unauthorized access attempt",
                         "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse-string"
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/resend-verification": {
+            "post": {
+                "description": "Resends a verification code to the user's email address.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Registration"
+                ],
+                "summary": "Resend Verification Code",
+                "parameters": [
+                    {
+                        "description": "Email for which to resend OTP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ResendEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid email",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/verify-email": {
+            "post": {
+                "description": "Verifies a user's email address using an OTP sent to their email.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Registration"
+                ],
+                "summary": "Verify Email with OTP",
+                "parameters": [
+                    {
+                        "description": "Email and OTP",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/EmailOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User verified successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid OTP/email",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{id}": {
+            "get": {
+                "description": "Retrieves a user's details by their unique ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User data fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or user not found",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Returns a list of users with optional filter/query parameters.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get Users with Filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "is_active",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
                         }
                     }
                 }
@@ -130,12 +345,12 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.ErrorResponse-string": {
+        "BadRequestError": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
-                    "example": "error message"
+                    "example": "Bad Request"
                 },
                 "success": {
                     "type": "boolean",
@@ -143,8 +358,55 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Login": {
+        "EmailOTPRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "otp"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "john.doe@gmail.com"
+                },
+                "otp": {
+                    "type": "string",
+                    "example": "123456"
+                }
+            }
+        },
+        "InternalServerError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Internal Server Error"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "LoadDataSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "Data inserted successfully!"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
             "properties": {
                 "password": {
                     "type": "string",
@@ -156,23 +418,19 @@ const docTemplate = `{
                 }
             }
         },
-        "models.LoginResponse": {
+        "ResendEmailRequest": {
             "type": "object",
+            "required": [
+                "email"
+            ],
             "properties": {
-                "expiry": {
+                "email": {
                     "type": "string",
-                    "example": "2025-05-01T12:00:00Z"
-                },
-                "token": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                },
-                "user_details": {
-                    "$ref": "#/definitions/models.UserResponse"
+                    "example": "john.doe@gmail.com"
                 }
             }
         },
-        "models.SuccessResponse-models_LoginResponse": {
+        "Success-LoginResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -184,11 +442,25 @@ const docTemplate = `{
                 }
             }
         },
-        "models.SuccessResponse-string": {
+        "UnauthorizedError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Unauthorized"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "UserRegisterSuccess": {
             "type": "object",
             "properties": {
                 "data": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Please verify your Email Address. We have sent an OTP to the Email Address."
                 },
                 "success": {
                     "type": "boolean",
@@ -196,7 +468,38 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserResponse": {
+        "UserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "phone",
+                "role_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserResponse": {
             "type": "object",
             "properties": {
                 "email": {
@@ -230,6 +533,134 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "models.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "expiry": {
+                    "type": "string",
+                    "example": "2025-05-01T12:00:00Z"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                },
+                "user_details": {
+                    "$ref": "#/definitions/UserResponse"
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "baseModel",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "phone"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "baseModel",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/models.Role"
+                },
+                "role_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_password": {
+                    "$ref": "#/definitions/models.UserPassword"
+                }
+            }
+        },
+        "models.UserPassword": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "description": "baseModel",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         }

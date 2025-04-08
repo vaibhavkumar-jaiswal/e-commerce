@@ -44,7 +44,7 @@ type UserRequest struct {
 	Email     string    `json:"email" validate:"required,email"`
 	Phone     string    `json:"phone" validate:"required,numeric,len=10"`
 	RoleID    uuid.UUID `json:"role_id" validate:"required"`
-}
+} //@name UserRequest
 
 type UserQueryParams struct {
 	FirstName  *string    `form:"first_name" query:"ILIKE"`
@@ -65,7 +65,7 @@ type UserResponse struct {
 	Phone     string    `json:"phone" example:"1234567890"`
 	RoleID    uuid.UUID `json:"role_id" example:"97d699c0-24ff-48dc-b64a-c29353fa8865"`
 	IsDeleted bool      `json:"is_deleted" example:"false"`
-}
+} //@name UserResponse
 
 func (userList UserList) ResponseList() []UserResponse {
 	var result []UserResponse

@@ -20,15 +20,17 @@ func NewUserHandler() *Handler {
 	}
 }
 
-// LoginHandler godoc
-// @Summary      Login
-// @Description  Logs in a user
-// @Tags         auth
+// LoginHandler  godoc
+// @Summary      User Login
+// @Description  Authenticates a user using email and password. Returns a JWT token on successful login that can be used to authorize future requests.
+// @Tags         Authentication
 // @Accept       json
 // @Produce      json
-// @Param        loginData  body     models.Login  true  "Login Data"
-// @Success      200        {object} models.SuccessResponse[models.LoginResponse]
-// @Failure      401        {object} models.ErrorResponse[string]
+// @Param        loginData  body     models.Login                      true  "User login credentials"
+// @Success      200        {object} models.SuccessResponse[LoginResponse] "Authenticated successfully with JWT token"
+// @Failure      400        {object} models.BadRequestError                    "Invalid or malformed request body"
+// @Failure      401        {object} models.UnauthorizedError                  "Invalid credentials or unauthorized access"
+// @Failure      500        {object} models.InternalServerError                "Unexpected server error"
 // @Router       /login [post]
 func (handler *Handler) LoginHandler(context *gin.Context) {
 	var loginData models.Login
@@ -48,6 +50,16 @@ func (handler *Handler) LoginHandler(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, data)
 }
 
+// GetUserByID godoc
+// @Summary      Get User by ID
+// @Description  Retrieves a user's details by their unique ID.
+// @Tags         Users
+// @Produce      json
+// @Param        id   path      string                     true  "User ID"
+// @Success      200  {object}  models.User                "User data fetched successfully"
+// @Failure      400  {object}  models.BadRequestError     "Invalid ID or user not found"
+// @Failure      500  {object}  models.InternalServerError "Internal server error"
+// @Router       /user/{id} [get]
 func (handler *Handler) GetUserByID(context *gin.Context) {
 
 	id := context.Param("id")
@@ -64,6 +76,17 @@ func (handler *Handler) GetUserByID(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, user)
 }
 
+// VerifyEmail godoc
+// @Summary      Verify Email with OTP
+// @Description  Verifies a user's email address using an OTP sent to their email.
+// @Tags         User Registration
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.EmailOTPRequest         true  "Email and OTP"
+// @Success      200      {object}  models.User                    "User verified successfully"
+// @Failure      400      {object}  models.BadRequestError         "Missing or invalid OTP/email"
+// @Failure      500      {object}  models.InternalServerError     "Internal server error"
+// @Router       /user/verify-email [post]
 func (handler *Handler) VerifyEmail(context *gin.Context) {
 
 	request := make(map[string]string)
@@ -93,6 +116,17 @@ func (handler *Handler) VerifyEmail(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, user)
 }
 
+// ResendVerificationCode godoc
+// @Summary      Resend Verification Code
+// @Description  Resends a verification code to the user's email address.
+// @Tags         User Registration
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.ResendEmailRequest      true  "Email for which to resend OTP"
+// @Success      200      {object}  models.User                    "OTP sent successfully"
+// @Failure      400      {object}  models.BadRequestError         "Missing or invalid email"
+// @Failure      500      {object}  models.InternalServerError     "Internal server error"
+// @Router       /user/resend-verification [post]
 func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 
 	request := make(map[string]string)
@@ -117,6 +151,19 @@ func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, user)
 }
 
+// GetUsers godoc
+// @Summary      Get Users with Filters
+// @Description  Returns a list of users with optional filter/query parameters.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        name       query     string  false  "Filter by name"
+// @Param        email      query     string  false  "Filter by email"
+// @Param        is_active  query     bool    false  "Filter by active status"
+// @Success      200        {array}   models.User                    "List of users"
+// @Failure      400        {object}  models.BadRequestError         "Invalid query parameters"
+// @Failure      500        {object}  models.InternalServerError     "Internal server error"
+// @Router       /users [get]
 func (handler *Handler) GetUsers(context *gin.Context) {
 
 	queryParams := &models.UserQueryParams{}
@@ -136,14 +183,16 @@ func (handler *Handler) GetUsers(context *gin.Context) {
 }
 
 // RegisterHandler godoc
-// @Summary      Register a new user
-// @Description  Registers a new user
-// @Tags         auth
+// @Summary      Register a New User
+// @Description  Registers a new user account by accepting valid email and other details. On success, returns the success message. Input validation and uniqueness checks are enforced.
+// @Tags         User Registration
 // @Accept       json
 // @Produce      json
-// @Param        loginData  body     models.Login  true  "Login Data"
-// @Success      200        {object} models.SuccessResponse[string]
-// @Failure      401        {object} models.ErrorResponse[string]
+// @Param        userDetails  body     models.UserRequest             true  "User registration payload"
+// @Success      200          {object} models.UserRegisterSuccess     "Registration successful"
+// @Failure      400          {object} models.BadRequestError         "Invalid input or missing required fields"
+// @Failure      401          {object} models.UnauthorizedError       "Unauthorized access attempt"
+// @Failure      500          {object} models.InternalServerError     "Unexpected server error"
 // @Router       /user/register [post]
 func (handler *Handler) AddUser(context *gin.Context) {
 
@@ -162,181 +211,3 @@ func (handler *Handler) AddUser(context *gin.Context) {
 
 	helper.ResponseWriter(context, http.StatusOK, message)
 }
-
-/*
-
-func (handler *Handler) GetUser(context *gin.Context) {
-	// var response models.Response
-
-	idStr := context.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		// response.Success = false
-		// response.Error = "Invalid User ID"
-		context.JSON(http.StatusBadRequest, "Invalid User ID")
-		return
-	}
-
-	user, err := handler.service.GetUserByID(uint(id))
-	if err != nil {
-		// response.Success = false
-		// response.Error = err.Error()
-		context.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// response.Success = true
-	// response.Data = user
-	context.JSON(http.StatusOK, user)
-}
-
-
-type userHandler struct {
-	userService *userService
-}
-
-func newUserHandler(userService *userService) *userHandler {
-	return &userHandler{userService: userService}
-}
-
-func (handler *userHandler) commonHandler(context *gin.Context) {
-	defer helper.CustomRecovery(context)
-
-	fullPath := context.FullPath()
-	method := context.Request.Method
-
-	switch {
-
-	case fullPath == "/user/:id" && method == http.MethodGet:
-		id_ := context.Param("id")
-		id := helper.StringToInt(id_)
-		if id == 0 {
-			context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: "User data not found for the requested user id..!"})
-			return
-		}
-		userData, err := handler.userService.GetUserByID(id)
-		if err != nil {
-			fmt.Printf("exception: %#v", err)
-			context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: err.Error()})
-			return
-		}
-		context.JSON(http.StatusOK, gin.H{"data": userData})
-		return
-
-	case fullPath == "/user" && method == http.MethodGet:
-		userData, err := handler.userService.GetUsers()
-		if err != nil {
-			fmt.Printf("exception: %#v", err)
-			context.JSON(http.StatusInternalServerError, gin.H{"data": "Internal Server Error"})
-			return
-		}
-		context.JSON(http.StatusOK, gin.H{"data": userData})
-		return
-
-	case fullPath == "/user" && method == http.MethodPost:
-		user := models.User{}
-		err := context.BindJSON(&user)
-		if err != nil {
-			context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: "Invalid request data..!"})
-			return
-		}
-		userData, err := handler.userService.AddUser(&user)
-		if err != nil {
-			fmt.Printf("exception: %#v", err)
-			if pgErr, ok := err.(*pq.Error); ok {
-				context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: pgErr.Detail})
-			} else {
-				fmt.Println("Unexpected error type:", err)
-				context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: err})
-			}
-			return
-		}
-		context.JSON(http.StatusCreated, gin.H{"data": userData})
-		return
-
-	case fullPath == "/user/:id" && method == http.MethodPatch:
-		id_ := context.Param("id")
-		id := helper.StringToInt(id_)
-		if id == 0 {
-			context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: "User data not found for the requested user id..!"})
-			return
-		}
-		userData, err := handler.userService.GetUserByID(id)
-		if err != nil {
-			fmt.Printf("exception: %#v", err)
-			context.JSON(500, gin.H{"data": "Internal Server Error"})
-			return
-		}
-		context.JSON(200, gin.H{"data": userData})
-		return
-
-	case fullPath == "/user/:id" && method == http.MethodDelete:
-		id_ := context.Param("id")
-		id := helper.StringToInt(id_)
-		if id == 0 {
-			context.JSON(http.StatusBadRequest, models.Response{Success: false, Error: "User data not found for the requested user id..!"})
-			return
-		}
-		userData, err := handler.userService.GetUserByID(id)
-		if err != nil {
-			fmt.Printf("exception: %#v", err)
-			context.JSON(500, gin.H{"data": "Internal Server Error"})
-			return
-		}
-		context.JSON(200, gin.H{"data": userData})
-		return
-
-	default:
-		return
-	}
-}
-
-func (handler *userHandler) loginHandler(context *gin.Context) {
-	var response models.Response
-	var logindata models.Login
-
-	err := context.BindJSON(&logindata)
-	if err != nil {
-		response.Success = false
-		response.Data = "Bad request data...!"
-		context.JSON(http.StatusBadRequest, response)
-		return
-	}
-
-	userObj, err := handler.userService.LoginUser(logindata)
-	if err != nil {
-		response.Success = false
-		response.Data = err.Error()
-		context.JSON(http.StatusBadRequest, response)
-		return
-	}
-
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_details"] = userObj
-
-	// Set token expiration time (e.g., 1 hour from now)
-	expirationTime := time.Now().Add(20 * time.Minute)
-	claims["exp"] = expirationTime.Unix()
-
-	tokenString, err := token.SignedString([]byte(constants.SECRETE_KEY))
-	if err != nil {
-		response.Success = false
-		response.Data = "Failed to generate auth token"
-		context.JSON(http.StatusInternalServerError, response)
-		return
-	}
-
-	userDetails := userObj.ResponseObj()
-
-	var userData models.LoginResponse
-	userData.UserDetails = userDetails
-	userData.AuthorizationToken = tokenString
-	userData.Expiry = expirationTime
-
-	response.Success = true
-	response.Data = userData
-
-	context.JSON(http.StatusOK, response)
-}
-*/
