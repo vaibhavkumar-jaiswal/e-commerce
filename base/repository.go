@@ -1,4 +1,4 @@
-package repositories
+package base
 
 import (
 	"errors"
@@ -74,7 +74,12 @@ func (base *BaseRepository[T]) FindAll(filters *gorm.DB, orderBy string, limit, 
 
 	query := base.DB.Model(new(T))
 	if filters != nil {
-		query = filters
+		query = filters.Model(new(T)) // Keep model context
+	}
+
+	// Get total count before pagination
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
 
 	if orderBy != "" {
@@ -84,8 +89,11 @@ func (base *BaseRepository[T]) FindAll(filters *gorm.DB, orderBy string, limit, 
 		query = query.Limit(limit).Offset(offset)
 	}
 
-	err := query.Find(&entities).Count(&total).Error
-	return entities, total, err
+	if err := query.Find(&entities).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return entities, total, nil
 }
 
 // Create inserts a new record in the database.
@@ -122,8 +130,13 @@ func (base *BaseRepository[T]) UpdateSpecificRecord(record map[string]any, condi
 // - id (uint): ID of the record to delete.
 // Returns:
 // - error: Error if any occurred during deletion.
-func (base *BaseRepository[T]) Delete(id uint) error {
-	return base.DB.Delete(new(T), id).Error
+func (base *BaseRepository[T]) Delete(entity *T, isSoftDelete bool) error {
+	if isSoftDelete {
+		return base.DB.Delete(entity).Error
+	}
+
+	return base.DB.Unscoped().Delete(entity).Error
+
 }
 
 // FindAllByCondition retrieves all records matching a given condition.

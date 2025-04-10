@@ -17,6 +17,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var publicRouteList = map[string]bool{}
+
 func Auth() gin.HandlerFunc {
 	return authenticate
 }
@@ -29,17 +31,7 @@ func authenticate(context *gin.Context) {
 		return
 	}
 
-	switch path {
-	case "/login":
-		context.Next()
-		return
-	case "/user/register":
-		context.Next()
-		return
-	case "/user/verification":
-		context.Next()
-		return
-	case "/user/resend-verification":
+	if _, ok := publicRouteList[path]; ok {
 		context.Next()
 		return
 	}
@@ -103,4 +95,9 @@ func authenticate(context *gin.Context) {
 		context.Abort()
 		return
 	}
+}
+
+func PublicRoute(route string) string {
+	publicRouteList[route] = true
+	return route
 }

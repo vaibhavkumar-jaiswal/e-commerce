@@ -1,18 +1,18 @@
 [
      {
-          "id": "11740bb7-e585-43d4-baef-32a255d50a52",
+          "address_type_id": "11740bb7-e585-43d4-baef-32a255d50a52",
           "name": "Home",
           "code": "HOME",
           "description": "This is a Home address"
      },
      {
-          "id": "898a203e-9b75-4357-afb9-211d903c9766",
+          "address_type_id": "898a203e-9b75-4357-afb9-211d903c9766",
           "name": "Work",
           "code": "WORK",
           "description": "This is a Work address"
      },
      {
-          "id": "2551f446-1fed-40a9-96f6-655a38535e3a",
+          "address_type_id": "2551f446-1fed-40a9-96f6-655a38535e3a",
           "name": "Other",
           "code": "OTHER",
           "description": "This is a Other address"

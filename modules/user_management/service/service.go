@@ -1,7 +1,7 @@
 package service
 
 import (
-	"e-commerce/modules/user_management/repo"
+	"e-commerce/modules/user_management/dbAccess"
 	"e-commerce/services"
 	"e-commerce/shared/models"
 	"e-commerce/utils/helper"
@@ -16,7 +16,7 @@ import (
 // Service provides user management operations, including login, email verification,
 // user retrieval, registration, and update functionalities.
 type Service struct {
-	repo *repo.Repo
+	repo *dbAccess.Repo
 }
 
 // NewUserService creates and returns a new User Service instance by initializing the repository.
@@ -24,7 +24,7 @@ type Service struct {
 //
 //	*Service: A pointer to a new Service instance with its repository initialized.
 func NewUserService() *Service {
-	repo := repo.NewUserRepository()
+	repo := dbAccess.NewUserRepository()
 	return &Service{
 		repo: repo,
 	}
@@ -42,7 +42,7 @@ func NewUserService() *Service {
 //	any: Typically a models.LoginResponse on success.
 //	error: An error if authentication fails or other issues occur.
 func (service *Service) Login(data models.Login) (any, error) {
-	join := "INNER JOIN user_passwords ON users.id = user_passwords.user_id"
+	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 	condition := "users.email = ? AND user_passwords.password = ? AND users.is_verified = true"
 
 	relations := []string{"Role"}
@@ -88,7 +88,7 @@ func (service *Service) GetUserByID(id string) (any, error) {
 		return nil, fmt.Errorf("invalid id format, expects uuid")
 	}
 
-	condition := "users.id = ? AND users.is_verified = true AND users.is_deleted = false"
+	condition := "users.user_id = ? AND users.is_verified = true"
 
 	user, err := service.repo.GetByCondition(condition, parsedUUID)
 	if err != nil {
@@ -120,7 +120,7 @@ func (service *Service) GetUserByID(id string) (any, error) {
 //	any: A success message indicating the email is verified.
 //	error: An error if verification fails or other issues occur.
 func (service *Service) VerifyEmail(email, otp string) (any, error) {
-	condition__ := "users.email = ? AND users.is_deleted = false"
+	condition__ := "users.email = ?"
 
 	user, err := service.repo.GetByCondition(condition__, email)
 	if err != nil {
@@ -153,7 +153,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 		"is_verified": true,
 	}
 
-	condition := "users.email = ? AND users.is_verified = false AND users.is_deleted = false"
+	condition := "users.email = ? AND users.is_verified = false"
 
 	err = service.repo.UpdateSpecificRecord(record, condition, email)
 	if err != nil {
@@ -164,7 +164,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	}
 
 	relations := []string{"UserPassword", "Role"}
-	join := "INNER JOIN user_passwords ON users.id = user_passwords.user_id"
+	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 
 	users, err := service.repo.FindAllByConditionWithJoin(relations, join, condition, email, true, false)
 	if err != nil {
@@ -207,7 +207,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 //	any: A string message confirming that the OTP has been sent.
 //	error: An error if any step fails during processing.
 func (service *Service) ResendVerificationCode(email string) (any, error) {
-	condition := "users.email = ? AND users.is_verified = false AND users.is_deleted = false"
+	condition := "users.email = ? AND users.is_verified = false"
 
 	user, err := service.repo.GetByCondition(condition, email)
 	if err != nil {
@@ -262,7 +262,7 @@ func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.
 
 	filter = helper.BuildQuery(filter, queryParams)
 
-	users, _, err := service.repo.FindAll(filter, "id", 0, 0)
+	users, _, err := service.repo.FindAll(filter, "user_id", 0, 0)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -339,40 +339,122 @@ func (service *Service) AddUser(request models.UserRequest) (string, error) {
 //
 //	any: Typically a user response object with updated details.
 //	error: An error if the update process fails.
-func (service *Service) UpdateUser(id string, request models.UserRequest) (any, error) {
+func (service *Service) UpdateUser(id string, request models.UpdateUserRequest) (string, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid id format, expects uuid")
+		return "", fmt.Errorf("invalid id format, expects uuid")
 	}
 
-	condition := "users.id = ? AND users.is_verified = ? AND users.is_deleted = ?"
+	condition := "users.user_id = ? AND users.is_verified = true"
 
-	users, err := service.repo.FindAllByCondition(condition, parsedUUID, true, false)
+	user, err := service.repo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
-			return nil, fmt.Errorf(pgErr.Detail)
+			return "", fmt.Errorf(pgErr.Detail)
 		}
-		return nil, err
+		return "", err
 	}
 
-	if len(users) < 1 {
-		return nil, fmt.Errorf("no user found with id = %s", parsedUUID)
+	if user == nil {
+		return "", fmt.Errorf("no user found with id = %s", parsedUUID)
 	}
 
-	user := users[0]
 	user.FirstName = request.FirstName
 	user.LastName = request.LastName
 	user.Email = request.Email
 	user.Phone = request.Phone
 	user.RoleID = request.RoleID
 
-	err = service.repo.Update(&user)
+	err = service.repo.Update(user)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
-			return nil, fmt.Errorf(pgErr.Detail)
+			return "", fmt.Errorf(pgErr.Detail)
 		}
-		return nil, err
+		return "", err
 	}
 
-	return user.ResponseObj(), nil
+	return "User upadated successfully.", nil
+}
+
+func (service *Service) PartialUpdateUser(id string, request models.PatchUserRequest) (string, error) {
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		return "", fmt.Errorf("invalid id format, expects uuid")
+	}
+
+	condition := "users.user_id = ? AND users.is_verified = true"
+
+	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	if user == nil {
+		return "", fmt.Errorf("no user found with id = %s", parsedUUID)
+	}
+
+	patchData := make(map[string]any)
+
+	if request.FirstName != "" {
+		patchData["first_name"] = request.FirstName
+	}
+
+	if request.LastName != "" {
+		patchData["last_name"] = request.LastName
+	}
+
+	if request.Email != "" {
+		patchData["email"] = request.Email
+	}
+
+	if request.Phone != "" {
+		patchData["phone"] = request.Phone
+	}
+	if request.RoleID != uuid.Nil {
+		patchData["role_id"] = request.RoleID
+	}
+
+	err = service.repo.UpdateSpecificRecord(patchData, condition, parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "User upadated successfully.", nil
+}
+
+func (service *Service) DeleteUser(id string) (string, error) {
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		return "", fmt.Errorf("invalid id format, expects uuid")
+	}
+
+	condition := "users.user_id = ? AND users.is_verified = true"
+
+	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	if user == nil {
+		return "", fmt.Errorf("no user found with id = %s", parsedUUID)
+	}
+
+	err = service.repo.Delete(user, true)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "User successfully deleted", nil
 }

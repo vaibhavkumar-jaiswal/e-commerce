@@ -10,9 +10,9 @@ func RunMigrations() error {
 	db := connections.GetDB()
 
 	modelsToMigrate := []interface{}{
+		&models.Role{},
 		&models.User{},
 		&models.UserPassword{},
-		&models.Role{},
 		&models.AddressType{},
 		&models.Address{},
 	}

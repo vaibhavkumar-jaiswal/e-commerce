@@ -514,10 +514,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "John Doe"
                 },
-                "is_deleted": {
-                    "type": "boolean",
-                    "example": false
-                },
                 "last_name": {
                     "type": "string",
                     "example": "Doe"
@@ -558,31 +554,19 @@ const docTemplate = `{
                 "code": {
                     "type": "string"
                 },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
                 "name": {
-                    "description": "baseModel",
                     "type": "string"
                 },
-                "updated_at": {
+                "role_id": {
                     "type": "string"
                 }
             }
         },
         "models.User": {
+            "description": "User model",
             "type": "object",
             "required": [
                 "email",
@@ -591,26 +575,13 @@ const docTemplate = `{
                 "phone"
             ],
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
                 },
                 "first_name": {
-                    "description": "baseModel",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 2
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
                 },
                 "is_verified": {
                     "type": "boolean"
@@ -629,10 +600,10 @@ const docTemplate = `{
                 "role_id": {
                     "type": "string"
                 },
-                "updated_at": {
+                "user_id": {
                     "type": "string"
                 },
-                "user_password": {
+                "user_passwords": {
                     "$ref": "#/definitions/models.UserPassword"
                 }
             }
@@ -640,26 +611,13 @@ const docTemplate = `{
         "models.UserPassword": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
                 "password": {
-                    "description": "baseModel",
-                    "type": "string"
-                },
-                "updated_at": {
                     "type": "string"
                 },
                 "user_id": {
+                    "type": "string"
+                },
+                "user_password_id": {
                     "type": "string"
                 }
             }

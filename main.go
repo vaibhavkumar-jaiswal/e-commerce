@@ -34,7 +34,6 @@ import (
 	"e-commerce/middleware/compression"
 	"e-commerce/middleware/ratelimiting"
 	"e-commerce/middleware/requestlog"
-	"e-commerce/modules/user_management/route"
 	"e-commerce/services"
 	configdata "e-commerce/utils/config_data"
 	"e-commerce/utils/helper"
@@ -96,9 +95,9 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "/api-docs/index.html")
 	})
 
-	router.GET("/load-data", configdata.PreLoadDataHandler)
-
 	router.Use(auth.Auth())
+
+	router.GET(auth.PublicRoute("/load-data"), configdata.PreLoadDataHandler)
 
 	router.Use(
 		ratelimiting.RateLimiter(
@@ -113,8 +112,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// add modules
-	route.UserManagementRoutes(router)
+	// Register all routes for the application
+	registerRoute(router)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", configData.Server.Port),

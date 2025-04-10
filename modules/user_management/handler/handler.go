@@ -32,7 +32,7 @@ func NewUserHandler() *Handler {
 // @Failure      401        {object} models.UnauthorizedError                  "Invalid credentials or unauthorized access"
 // @Failure      500        {object} models.InternalServerError                "Unexpected server error"
 // @Router       /login [post]
-func (handler *Handler) LoginHandler(context *gin.Context) {
+func (handler *Handler) Login(context *gin.Context) {
 	var loginData models.Login
 
 	err := context.BindJSON(&loginData)
@@ -198,7 +198,7 @@ func (handler *Handler) AddUser(context *gin.Context) {
 
 	var request models.UserRequest
 
-	if err := context.ShouldBind(&request); err != nil {
+	if err := context.ShouldBindJSON(&request); err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid user request data.")
 		return
 	}
@@ -219,7 +219,7 @@ func (handler *Handler) UpdateUser(context *gin.Context) {
 		return
 	}
 
-	var request models.UserRequest
+	var request models.UpdateUserRequest
 
 	if err := context.ShouldBind(&request); err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid user request data.")
@@ -227,6 +227,45 @@ func (handler *Handler) UpdateUser(context *gin.Context) {
 	}
 
 	message, err := handler.service.UpdateUser(id, request)
+	if err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseWriter(context, http.StatusOK, message)
+}
+
+func (handler *Handler) PartialUpdateUser(context *gin.Context) {
+	id := context.Param("id")
+	if id == "" {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
+		return
+	}
+
+	var request models.PatchUserRequest
+
+	if err := context.ShouldBindJSON(&request); err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid user request data.")
+		return
+	}
+
+	message, err := handler.service.PartialUpdateUser(id, request)
+	if err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseWriter(context, http.StatusOK, message)
+}
+
+func (handler *Handler) DeleteUser(context *gin.Context) {
+	id := context.Param("id")
+	if id == "" {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
+		return
+	}
+
+	message, err := handler.service.DeleteUser(id)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return

@@ -1,10 +1,10 @@
-package repo
+package dbAccess
 
 import (
 	"e-commerce/database/connections"
 
+	"e-commerce/base"
 	"e-commerce/shared/models"
-	"e-commerce/shared/repositories"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +12,7 @@ import (
 // Repo defines a concrete implementation of user-specific repository
 // using the generic BaseRepository from the shared layer.
 type Repo struct {
-	base repositories.BaseRepository[models.User]
+	base base.BaseRepository[models.User]
 }
 
 // NewUserRepository creates a new instance of the User repository.
@@ -20,7 +20,7 @@ type Repo struct {
 // - *Repo: Pointer to a new Repo with injected DB and Redis client.
 func NewUserRepository() *Repo {
 	return &Repo{
-		base: *repositories.NewBaseRepository[models.User](connections.GetDB(), connections.GetRedisClient()),
+		base: *base.NewBaseRepository[models.User](connections.GetDB(), connections.GetRedisClient()),
 	}
 }
 
@@ -118,4 +118,8 @@ func (repo Repo) UpdateSpecificRecord(record map[string]any, condition string, a
 // - error: Error if any occurred during the update.
 func (repo Repo) Update(user *models.User) error {
 	return repo.base.Update(user)
+}
+
+func (repo Repo) Delete(user *models.User, isSoftDelete bool) error {
+	return repo.base.Delete(user, isSoftDelete)
 }
