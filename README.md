@@ -119,7 +119,7 @@ http://localhost:8080/api-docs
 
 ---
 
-## 🧼 Linting
+## Linting
 
 ```bash
 golangci-lint run ./...
@@ -127,26 +127,26 @@ golangci-lint run ./...
 
 ---
 
-## 🛠️ Features
+## Features
 
-- ✅ User registration, email verification & login with JWT
-- 🛒 Product CRUD
-- 🧾 Order & Cart management
-- 📮 Email notifications via SMTP
-- 🔒 Route-level JWT auth middleware
-- 🧠 Validation using `binding:"required"`
-- 📃 Swagger API docs auto-generated
-- 🧹 Clean code with `golangci-lint`
+- User registration, email verification & login with JWT
+- Product CRUD
+- Order & Cart management
+- Email notifications via SMTP
+- Route-level JWT auth middleware
+- Validation using `binding:"required"`
+- Swagger API docs auto-generated
+- Clean code with `golangci-lint`
 
 ---
 
-## 📬 Email Example
+## Email Example
 
 When a user places an order, an email confirmation is sent via configured SMTP settings.
 
 ---
 
-## 🚧 TODO (Optional)
+## TODO (Optional)
 
 - Payment gateway integration (Stripe/Razorpay/etc.)
 - Admin panel for product management

@@ -8,11 +8,7 @@ import (
 func GetCache(cacheKey string) (string, error) {
 	ctx := context.Background()
 	data, err := redisClient.Get(ctx, cacheKey).Result()
-	if err != nil {
-		return "", err
-	}
-
-	return data, nil
+	return data, err
 }
 
 func DeleteCache(cacheKey ...string) error {

@@ -15,12 +15,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary      Load Data
-// @Description  Preload data from JSON files into the database
-// @Tags         Preload Data
+// LoadDataHandler godoc
+// @Summary      Preload Static Data
+// @Description  Loads static reference data (e.g., categories, roles, etc.) into the database from predefined JSON files. This is typically used during application setup or environment bootstrap.
+// @Tags         Admin
 // @Produce      json
-// @Success      200  {object}  models.SuccessResponse[models.UserResponse]
-// @Failure      500  {object}  models.ErrorResponse[string]
+// @Success      200  {object} models.LoadDataSuccess        "Data loaded successfully from JSON files"
+// @Failure      500  {object} models.InternalServerError    "Error occurred while loading data"
 // @Router       /load-data [get]
 func PreLoadDataHandler(context *gin.Context) {
 

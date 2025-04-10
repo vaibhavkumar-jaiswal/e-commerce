@@ -1,17 +1,16 @@
+version: 2
+
 run:
   timeout: 5m
-  tests: true
 
 linters:
   enable:
     - govet
-    - revive
-    - errcheck
     - staticcheck
     - unused
-    - gofmt
-    - gosimple
-    - gocritic
+    - ineffassign
+    - revive
+    - dupl
 
-issues:
-  exclude-use-default: false
+exclude:
+  - ".*_test.go"

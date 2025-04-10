@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -53,7 +54,7 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 			}
 
 			// Key for Redis based on user ID
-			key = "rate_limit_" + user.ID.String()
+			key = "rate_limit_" + uuid.UUID(user.UserID).String()
 		}
 
 		// Get the current count of requests for the user
