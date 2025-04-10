@@ -7,12 +7,15 @@ PORT=8080
 echo "🛑 Checking if port $PORT is already in use..."
 if lsof -i :$PORT -sTCP:LISTEN -t >/dev/null ; then
   PID=$(lsof -i :$PORT -sTCP:LISTEN -t)
-  echo "🔪 Killing process on port $PORT (PID: $PID)..."
+  echo "Killing process on port $PORT (PID: $PID)..."
   kill -9 $PID
 fi
 
 echo "🔄 Cleaning old build..."
 go clean
+
+echo "🎨 Formatting code..."
+goimports -w .
 
 echo "📝 Creating Swagger Docs..."
 rm -rf docs
@@ -26,5 +29,3 @@ go build -o bin/e-commerce .
 
 echo "🚀 Running the project..."
 ./bin/e-commerce
-
-echo "✅ Project ran successfully!"

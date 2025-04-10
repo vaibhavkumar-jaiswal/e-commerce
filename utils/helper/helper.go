@@ -1,24 +1,23 @@
 package helper
 
 import (
-	cryptRand "crypto/rand"
 	"e-commerce/database/connections"
 	"e-commerce/shared/models"
 	"e-commerce/utils/constants"
+
+	cryptRand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	mathRand "math/rand"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 var ExpiryTime int
@@ -27,6 +26,8 @@ var passwordLength int
 var otpLength int
 var redisClient *redis.Client
 
+// InitiateHelper initializes the helper package with configuration data
+// and sets up the Redis client.
 func InitiateHelper(config models.ConfigData) {
 	ExpiryTime = config.SessionTimeOutmin
 	OtpExpTime = config.OtpExpMin
@@ -35,9 +36,9 @@ func InitiateHelper(config models.ConfigData) {
 	redisClient = connections.GetRedisClient()
 }
 
-// json related functions
+// it converts the embedding struct into JSON format
+// and returns the JSON string
 func StructToJson(data any) string {
-	// Marshal the embedding struct into JSON
 	v, err := json.MarshalIndent(data, "", "   ")
 	if err != nil {
 		return fmt.Sprintf("Error: %s", err)
@@ -45,9 +46,10 @@ func StructToJson(data any) string {
 	return string(v)
 }
 
+// it converts the JSON string into the embedding struct
+// and returns the struct
 func JsonToStruct[T any](data string) (T, error) {
 	var v T
-	// Marshal the embedding JSON into struct
 	err := json.Unmarshal([]byte(data), &v)
 	if err != nil {
 		return v, err
@@ -55,6 +57,8 @@ func JsonToStruct[T any](data string) (T, error) {
 	return v, nil
 }
 
+// it calculates the offset for pagination
+// based on the page number and limit provided.
 func CalculateOffset(page, limit string) int {
 	pageInt := StringToInt(page)
 	limitInt := StringToInt(limit)
@@ -67,6 +71,8 @@ func CalculateOffset(page, limit string) int {
 	return offset
 }
 
+// it converts the string to int
+// and returns the int value
 func StringToInt(str string) int {
 	result, err := strconv.Atoi(str)
 	if err != nil {
@@ -76,14 +82,22 @@ func StringToInt(str string) int {
 	return result
 }
 
+// it converts the int to string
+// and returns the string value
 func IntToString(num int) string {
 	return strconv.Itoa(num)
 }
 
+// it converts the float to int
+// and returns the int value
+// Note: This function currently returns 0 as the implementation is not provided.
+// You can implement the conversion logic as per your requirement.
 func FloatToInt(num float64) int {
 	return 0
 }
 
+// it is used to recover from panics in the application.
+// It logs the panic message and returns a JSON response with a 500 status code.
 func CustomRecovery(context *gin.Context) {
 	if r := recover(); r != nil {
 		fmt.Printf("\n-------------------exception-------------------: \n%#v", r)
@@ -92,6 +106,8 @@ func CustomRecovery(context *gin.Context) {
 	}
 }
 
+// it is used to create a JWT token with claims.
+// It takes the data as input and returns the JWT token and a boolean indicating success or failure.
 func CreateJwtWithClaims(data any) (string, bool) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
@@ -109,10 +125,10 @@ func CreateJwtWithClaims(data any) (string, bool) {
 	return jwtToken, true
 }
 
+// it is used to write the response to the client.
+// It takes the context, status code, and data as input.
 func ResponseWriter[T any](cxt *gin.Context, status int, data T) {
-
 	var response any
-
 	if status >= http.StatusBadRequest {
 		response = models.ErrorResponse[T]{
 			Success: false,
@@ -124,7 +140,6 @@ func ResponseWriter[T any](cxt *gin.Context, status int, data T) {
 			Data:    data,
 		}
 	}
-
 	cxt.JSON(status, response)
 }
 
@@ -147,66 +162,6 @@ func GeneratePassword() string {
 	return string(password)
 }
 
-func BuildQuery(query *gorm.DB, filterStruct interface{}) *gorm.DB {
-
-	// Use reflection to iterate over the fields of the filter struct
-	v := reflect.ValueOf(filterStruct)
-	t := reflect.TypeOf(filterStruct)
-
-	// Handle pointer structs
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-		t = t.Elem()
-	}
-
-	// Iterate over the fields
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		valueField := v.Field(i)
-
-		if !valueField.CanInterface() {
-			continue
-		}
-
-		// Extract field value
-		var value interface{}
-		if valueField.Kind() == reflect.Ptr {
-			// If the field is a pointer, check for nil and dereference
-			if !valueField.IsNil() {
-				value = valueField.Elem().Interface()
-			} else {
-				continue // Skip nil pointers
-			}
-		} else {
-			value = valueField.Interface()
-		}
-
-		// Check if the field has a "query" tag and the value is not empty/zero
-		tag := field.Tag.Get("form")
-		qTag := field.Tag.Get("query")
-
-		if (tag != "" && !isZero(value)) || (reflect.TypeOf(value).Kind() == reflect.Bool) {
-			switch qTag {
-			case "LIKE":
-				query = query.Where(fmt.Sprintf("%s LIKE ?", tag), fmt.Sprintf("%%%s%%", value))
-			case "ILIKE":
-				query = query.Where(fmt.Sprintf("%s ILIKE ?", tag), fmt.Sprintf("%%%s%%", value))
-			case "EQUAL":
-				query = query.Where(fmt.Sprintf("%s = ?", tag), value)
-			default:
-				query = query.Where(fmt.Sprintf("%s = ?", tag), value)
-			}
-		}
-	}
-
-	return query
-}
-
-// Helper function to check if a value is the zero value for its type
-func isZero(value interface{}) bool {
-	return reflect.DeepEqual(value, reflect.Zero(reflect.TypeOf(value)).Interface())
-}
-
 // get email verification email format (subject, emailbody)
 func GetEmailVerificationFormat(emailToName string, otp string, isHtml bool) (string, string) {
 	companyName := os.Getenv(constants.COMPANY_NAME)
@@ -217,7 +172,6 @@ func GetEmailVerificationFormat(emailToName string, otp string, isHtml bool) (st
 	} else {
 		return subject, fmt.Sprintf(constants.OTP_VERIFICATION_EMAIL_FORMAT_TXT, emailToName, companyName, otp, companyName, companyName, companyName)
 	}
-
 }
 
 // get login credential email format (subject, emailbody)

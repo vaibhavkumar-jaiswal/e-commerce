@@ -1,6 +1,6 @@
-// @title       Taskify API
+// @title       E-Commerce API
 // @version     1.0
-// @description This is the API documentation for Taskify
+// @description This is the API documentation for E-Commerce
 // @host        localhost:8080
 // @BasePath    /
 // @schemes     http
@@ -34,7 +34,6 @@ import (
 	"e-commerce/middleware/compression"
 	"e-commerce/middleware/ratelimiting"
 	"e-commerce/middleware/requestlog"
-	"e-commerce/modules/user_management/route"
 	"e-commerce/services"
 	configdata "e-commerce/utils/config_data"
 	"e-commerce/utils/helper"
@@ -80,7 +79,7 @@ func main() {
 	config.AllowOrigins = configData.AllowedOrigins
 	config.AllowMethods = configData.AllowedMethods
 
-	fmt.Printf("🌐 CORS configured for: %v\n", configData.AllowedOrigins)
+	fmt.Printf("CORS configured for: %v\n", configData.AllowedOrigins)
 
 	router.Use(cors.New(config))
 
@@ -96,11 +95,9 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "/api-docs/index.html")
 	})
 
-	router.GET("/health", func(context *gin.Context) { context.JSON(http.StatusOK, gin.H{"status": "ok"}) })
-
-	router.GET("/load-data", configdata.PreLoadDataHandler)
-
 	router.Use(auth.Auth())
+
+	router.GET(auth.PublicRoute("/load-data"), configdata.PreLoadDataHandler)
 
 	router.Use(
 		ratelimiting.RateLimiter(
@@ -109,13 +106,14 @@ func main() {
 			connections.GetRedisClient(),
 		),
 	)
+
 	if err := migrations.RunMigrations(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Migration error: %s\n", err)
 		os.Exit(1)
 	}
 
-	// add modules
-	route.UserManagementRoutes(router)
+	// Register all routes for the application
+	registerRoute(router)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", configData.Server.Port),
@@ -123,6 +121,7 @@ func main() {
 	}
 
 	fmt.Printf("Server running on port: %s\n", configData.Server.Port)
+
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Printf("Err : %s\n", err)
@@ -148,5 +147,4 @@ func main() {
 	}
 
 	fmt.Printf("\nServers shut down...!")
-
 }

@@ -2,6 +2,10 @@ package constants
 
 // .env keys
 
+const LOCAL_ENV = "local"
+const DEV_ENV = "dev"
+const TEST_ENV = "test"
+
 const DB_USER = "DB_USER"
 const DB_PASSWORD = "DB_PASSWORD"
 const APP_ENV = "APP_ENV"
