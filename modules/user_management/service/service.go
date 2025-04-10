@@ -13,11 +13,16 @@ import (
 	"github.com/lib/pq"
 )
 
+// Service provides user management operations, including login, email verification,
+// user retrieval, registration, and update functionalities.
 type Service struct {
 	repo *repo.Repo
 }
 
-// NewUserService initializes a new instance of the Service struct with the provided repository.
+// NewUserService creates and returns a new User Service instance by initializing the repository.
+// Returns:
+//
+//	*Service: A pointer to a new Service instance with its repository initialized.
 func NewUserService() *Service {
 	repo := repo.NewUserRepository()
 	return &Service{
@@ -25,14 +30,23 @@ func NewUserService() *Service {
 	}
 }
 
-// GetUserByConditionWithJoin retrieves a user by applying a join query on the `users` and `user_passwords` tables.
-// It validates the user's credentials and generates a JWT token if the credentials are valid.
-func (service *Service) GetUserByConditionWithJoin(data models.Login) (any, error) {
+// Login processes user authentication based on provided login credentials.
+// It validates the username, password and then generates a JWT token upon successful authentication.
+//
+// Parameters:
+//
+//	data (models.Login): Login credentials containing UserName and Password.
+//
+// Returns:
+//
+//	any: Typically a models.LoginResponse on success.
+//	error: An error if authentication fails or other issues occur.
+func (service *Service) Login(data models.Login) (any, error) {
 	join := "INNER JOIN user_passwords ON users.id = user_passwords.user_id"
 	condition := "users.email = ? AND user_passwords.password = ? AND users.is_verified = true"
 
 	relations := []string{"Role"}
-	userList, err := service.repo.FindByConditionWithJoin(relations, join, condition, data.UserName, data.Password)
+	userList, err := service.repo.FindAllByConditionWithJoin(relations, join, condition, data.UserName, data.Password)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -58,17 +72,25 @@ func (service *Service) GetUserByConditionWithJoin(data models.Login) (any, erro
 	return response, nil
 }
 
-// GetUserByID retrieves a user by their unique ID (UUID).
-// It ensures the user exists and is verified before returning their details.
+// GetUserByID retrieves a user by their unique identifier (UUID).
+//
+// Parameters:
+//
+//	id (string): The UUID of the user in string format.
+//
+// Returns:
+//
+//	any: Typically a user response object if found.
+//	error: An error if the user is not found or if an error occurred during retrieval.
 func (service *Service) GetUserByID(id string) (any, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id format, expects uuid")
 	}
 
-	condition := "users.id = ? AND users.is_verified = true"
+	condition := "users.id = ? AND users.is_verified = true AND users.is_deleted = false"
 
-	users, err := service.repo.FindByCondition(condition, parsedUUID)
+	user, err := service.repo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -76,19 +98,31 @@ func (service *Service) GetUserByID(id string) (any, error) {
 		return nil, err
 	}
 
-	if len(users) < 1 {
+	if user == nil {
 		return nil, fmt.Errorf("no user found with id = %s", parsedUUID)
 	}
 
-	return users[0].ResponseObj(), nil
+	return user.ResponseObj(), nil
 }
 
-// VerifyEmail verifies a user's email address using an OTP.
-// If the OTP is valid, the user's email is marked as verified, and their credentials are sent via email.
+// VerifyEmail verifies a user's email using an OTP (One-Time Password).
+// It validates the user's status, compares the provided OTP with cached OTP,
+// and, upon a successful match, updates the user's status to verified,
+// clears the OTP cache, and sends a confirmation email.
+//
+// Parameters:
+//
+//	email (string): The email address to verify.
+//	otp (string): The one-time password entered by the user.
+//
+// Returns:
+//
+//	any: A success message indicating the email is verified.
+//	error: An error if verification fails or other issues occur.
 func (service *Service) VerifyEmail(email, otp string) (any, error) {
-	condition__ := "users.email = ? AND users.is_deleted = ?"
+	condition__ := "users.email = ? AND users.is_deleted = false"
 
-	userList, err := service.repo.FindByCondition(condition__, email, false)
+	user, err := service.repo.GetByCondition(condition__, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -96,11 +130,11 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 		return nil, err
 	}
 
-	if len(userList) < 1 {
+	if user == nil {
 		return nil, fmt.Errorf("user with email (%s) is not registered", email)
 	}
 
-	if userList[0].IsVerified {
+	if user.IsVerified {
 		return nil, fmt.Errorf("user with email (%s) is already verified, you can proceed to login", email)
 	}
 
@@ -119,9 +153,9 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 		"is_verified": true,
 	}
 
-	condition := "users.email = ? AND users.is_verified = ? AND users.is_deleted = ?"
+	condition := "users.email = ? AND users.is_verified = false AND users.is_deleted = false"
 
-	err = service.repo.UpdateSpecificRecord(record, condition, email, false, false)
+	err = service.repo.UpdateSpecificRecord(record, condition, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -132,7 +166,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	relations := []string{"UserPassword", "Role"}
 	join := "INNER JOIN user_passwords ON users.id = user_passwords.user_id"
 
-	users, err := service.repo.FindByConditionWithJoin(relations, join, condition, email, true, false)
+	users, err := service.repo.FindAllByConditionWithJoin(relations, join, condition, email, true, false)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -161,11 +195,21 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	return "Your email has been successfully verified! We've sent your login credentials to your registered email address. Please check your inbox to proceed.", nil
 }
 
-// ResendVerificationCode resends the OTP to the user's email address for email verification.
+// ResendVerificationCode handles the process to resend an OTP verification code
+// to users who have not yet verified their email.
+//
+// Parameters:
+//
+//	email (string): The email address to which the OTP will be sent.
+//
+// Returns:
+//
+//	any: A string message confirming that the OTP has been sent.
+//	error: An error if any step fails during processing.
 func (service *Service) ResendVerificationCode(email string) (any, error) {
-	condition := "users.email = ? AND users.is_deleted = ?"
+	condition := "users.email = ? AND users.is_verified = false AND users.is_deleted = false"
 
-	users, err := service.repo.FindByCondition(condition, email, false)
+	user, err := service.repo.GetByCondition(condition, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -173,41 +217,52 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 		return nil, err
 	}
 
-	if len(users) < 1 {
+	if user == nil {
 		return nil, fmt.Errorf("the user with email (%s) has not registered", email)
 	}
 
-	if users[0].IsVerified {
+	if user.IsVerified {
 		return nil, fmt.Errorf("user with email (%s) is already verified, you can proceed to login", email)
 	}
 
 	otp := helper.GenerateSecureOTP()
 	isHtml := true
-	subject, emailBody := helper.GetEmailVerificationFormat(users[0].FullName(), otp, isHtml)
+	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHtml)
 
-	_, err = helper.SetCache(users[0].Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
+	_, err = helper.SetCache(user.Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() {
-		if err := services.SmtpServer.SendEmail(users[0].Email, subject, emailBody, isHtml); err != nil {
-			fmt.Printf("failed to send email to %s: %v", users[0].Email, err)
+		if err := services.SmtpServer.SendEmail(user.Email, subject, emailBody, isHtml); err != nil {
+			fmt.Printf("failed to send email to %s: %v", user.Email, err)
 		}
 	}()
 
 	return "We have sent the OTP to your Email address.", nil
 }
 
-// GetUsers retrieves a list of verified users based on the provided query parameters.
+// GetUsers retrieves a list of users matching the specified query parameters.
+// It filters for only verified users by default, builds a dynamic query,
+// and returns a formatted list of user responses.
+//
+// Parameters:
+//
+//	queryParams (*models.UserQueryParams): The query parameters for filtering users.
+//
+// Returns:
+//
+//	[]models.UserResponse: A slice of user response objects.
+//	error: An error if no data is found or if any operation fails.
 func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.UserResponse, error) {
 	queryParams.IsVerified = true
 
-	filter := service.repo.DB.Model(&models.User{})
+	filter := service.repo.GetFilter()
 
 	filter = helper.BuildQuery(filter, queryParams)
 
-	users, _, err := service.repo.GetAll(filter, "id", 0, 0)
+	users, _, err := service.repo.FindAll(filter, "id", 0, 0)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -222,7 +277,18 @@ func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.
 	return models.UserList(users).ResponseList(), nil
 }
 
-// AddUser creates a new user in the system and sends an OTP to their email for verification.
+// AddUser creates a new user in the system and sends an email verification OTP.
+// It populates the user data from the request, generates a password,
+// and caches an OTP before sending it asynchronously.
+//
+// Parameters:
+//
+//	request (models.UserRequest): The user data for registration.
+//
+// Returns:
+//
+//	string: A success message instructing the user to verify their email.
+//	error: An error if the creation or OTP email sending fails.
 func (service *Service) AddUser(request models.UserRequest) (string, error) {
 	user := models.User{
 		FirstName: request.FirstName,
@@ -258,4 +324,55 @@ func (service *Service) AddUser(request models.UserRequest) (string, error) {
 	}()
 
 	return "Please verify your Email Address. We have sent an OTP to the Email Address.", nil
+}
+
+// UpdateUser updates an existing user's information based on the provided user ID and new data.
+// It validates the user's UUID, retrieves the current user data,
+// applies the updates, and then saves the changes.
+//
+// Parameters:
+//
+//	id (string): The user's UUID in string format.
+//	request (models.UserRequest): The new user data to update.
+//
+// Returns:
+//
+//	any: Typically a user response object with updated details.
+//	error: An error if the update process fails.
+func (service *Service) UpdateUser(id string, request models.UserRequest) (any, error) {
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid id format, expects uuid")
+	}
+
+	condition := "users.id = ? AND users.is_verified = ? AND users.is_deleted = ?"
+
+	users, err := service.repo.FindAllByCondition(condition, parsedUUID, true, false)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf(pgErr.Detail)
+		}
+		return nil, err
+	}
+
+	if len(users) < 1 {
+		return nil, fmt.Errorf("no user found with id = %s", parsedUUID)
+	}
+
+	user := users[0]
+	user.FirstName = request.FirstName
+	user.LastName = request.LastName
+	user.Email = request.Email
+	user.Phone = request.Phone
+	user.RoleID = request.RoleID
+
+	err = service.repo.Update(&user)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf(pgErr.Detail)
+		}
+		return nil, err
+	}
+
+	return user.ResponseObj(), nil
 }

@@ -67,23 +67,6 @@ type UserResponse struct {
 	IsDeleted bool      `json:"is_deleted" example:"false"`
 } //@name UserResponse
 
-func (userList UserList) ResponseList() []UserResponse {
-	var result []UserResponse
-	for _, obj := range userList {
-		result = append(result, UserResponse{
-			ID:        obj.ID,
-			FullName:  obj.FullName(),
-			FirstName: obj.FirstName,
-			LastName:  obj.LastName,
-			Email:     obj.Email,
-			Phone:     obj.Phone,
-			RoleID:    obj.RoleID,
-			IsDeleted: obj.IsDeleted,
-		})
-	}
-	return result
-}
-
 func (user User) ResponseObj() UserResponse {
 	result := UserResponse{
 		ID:        user.ID,
@@ -96,6 +79,14 @@ func (user User) ResponseObj() UserResponse {
 		IsDeleted: user.IsDeleted,
 	}
 
+	return result
+}
+
+func (userList UserList) ResponseList() []UserResponse {
+	var result []UserResponse
+	for _, obj := range userList {
+		result = append(result, obj.ResponseObj())
+	}
 	return result
 }
 

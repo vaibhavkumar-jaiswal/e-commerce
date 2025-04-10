@@ -41,7 +41,7 @@ func (handler *Handler) LoginHandler(context *gin.Context) {
 		return
 	}
 
-	data, err := handler.service.GetUserByConditionWithJoin(loginData)
+	data, err := handler.service.Login(loginData)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
@@ -204,6 +204,29 @@ func (handler *Handler) AddUser(context *gin.Context) {
 	}
 
 	message, err := handler.service.AddUser(request)
+	if err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseWriter(context, http.StatusOK, message)
+}
+
+func (handler *Handler) UpdateUser(context *gin.Context) {
+	id := context.Param("id")
+	if id == "" {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
+		return
+	}
+
+	var request models.UserRequest
+
+	if err := context.ShouldBind(&request); err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid user request data.")
+		return
+	}
+
+	message, err := handler.service.UpdateUser(id, request)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
