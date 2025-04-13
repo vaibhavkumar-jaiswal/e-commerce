@@ -1,3 +1,5 @@
+// Package base provides Generic repository for CRUD operations using GORM and Redis.
+// This repository can be used for any model type T.
 package base
 
 import (
@@ -7,20 +9,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// BaseRepository is a generic repository that provides common database operations for any model T.
-type BaseRepository[T any] struct {
+// Repository is a generic repository that provides common database operations for any model T.
+type Repository[T any] struct {
 	DB          *gorm.DB
 	RedisClient *redis.Client
 }
 
-// NewBaseRepository creates a new instance of BaseRepository.
+// NewRepository creates a new instance of Repository.
 // Parameters:
 // - db (*gorm.DB): GORM database connection.
 // - redisClient (*redis.Client): Redis client instance.
 // Returns:
-// - *BaseRepository[T]: A pointer to a new BaseRepository instance.
-func NewBaseRepository[T any](db *gorm.DB, redisClient *redis.Client) *BaseRepository[T] {
-	return &BaseRepository[T]{DB: db, RedisClient: redisClient}
+// - *Repository[T]: A pointer to a new Repository instance.
+func NewRepository[T any](db *gorm.DB, redisClient *redis.Client) *Repository[T] {
+	return &Repository[T]{DB: db, RedisClient: redisClient}
 }
 
 // Get retrieves a single record by its primary key (ID).
@@ -29,7 +31,7 @@ func NewBaseRepository[T any](db *gorm.DB, redisClient *redis.Client) *BaseRepos
 // Returns:
 // - *T: Pointer to the retrieved entity (or nil if not found).
 // - error: Error if any occurred during the DB operation.
-func (base *BaseRepository[T]) Get(id uint) (*T, error) {
+func (base *Repository[T]) Get(id uint) (*T, error) {
 	var entity T
 	if err := base.DB.First(&entity, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +49,7 @@ func (base *BaseRepository[T]) Get(id uint) (*T, error) {
 // Returns:
 // - *T: Pointer to the found entity (or nil if not found).
 // - error: Error if any occurred during the query.
-func (base *BaseRepository[T]) GetByCondition(condition any, args ...any) (*T, error) {
+func (base *Repository[T]) GetByCondition(condition any, args ...any) (*T, error) {
 	var entity T
 	if err := base.DB.First(&entity, condition, args).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -68,7 +70,7 @@ func (base *BaseRepository[T]) GetByCondition(condition any, args ...any) (*T, e
 // - []T: Slice of found entities.
 // - int64: Total number of records found.
 // - error: Error if any occurred during the query.
-func (base *BaseRepository[T]) FindAll(filters *gorm.DB, orderBy string, limit, offset int) ([]T, int64, error) {
+func (base *Repository[T]) FindAll(filters *gorm.DB, orderBy string, limit, offset int) ([]T, int64, error) {
 	var entities []T
 	var total int64
 
@@ -101,7 +103,7 @@ func (base *BaseRepository[T]) FindAll(filters *gorm.DB, orderBy string, limit, 
 // - entity (*T): Pointer to the entity to create.
 // Returns:
 // - error: Error if any occurred during insertion.
-func (base *BaseRepository[T]) Create(entity *T) error {
+func (base *Repository[T]) Create(entity *T) error {
 	return base.DB.Create(entity).Error
 }
 
@@ -110,7 +112,7 @@ func (base *BaseRepository[T]) Create(entity *T) error {
 // - entity (*T): Pointer to the entity to update.
 // Returns:
 // - error: Error if any occurred during update.
-func (base *BaseRepository[T]) Update(entity *T) error {
+func (base *Repository[T]) Update(entity *T) error {
 	return base.DB.Save(entity).Error
 }
 
@@ -121,7 +123,7 @@ func (base *BaseRepository[T]) Update(entity *T) error {
 // - args (...any): Arguments for the condition.
 // Returns:
 // - error: Error if any occurred during the update.
-func (base *BaseRepository[T]) UpdateSpecificRecord(record map[string]any, condition string, args ...any) error {
+func (base *Repository[T]) UpdateSpecificRecord(record map[string]any, condition string, args ...any) error {
 	return base.DB.Model(new(T)).Where(condition, args...).Updates(record).Error
 }
 
@@ -130,7 +132,7 @@ func (base *BaseRepository[T]) UpdateSpecificRecord(record map[string]any, condi
 // - id (uint): ID of the record to delete.
 // Returns:
 // - error: Error if any occurred during deletion.
-func (base *BaseRepository[T]) Delete(entity *T, isSoftDelete bool) error {
+func (base *Repository[T]) Delete(entity *T, isSoftDelete bool) error {
 	if isSoftDelete {
 		return base.DB.Delete(entity).Error
 	}
@@ -146,7 +148,7 @@ func (base *BaseRepository[T]) Delete(entity *T, isSoftDelete bool) error {
 // Returns:
 // - []T: Slice of matched entities.
 // - error: Error if any occurred during query execution.
-func (base *BaseRepository[T]) FindAllByCondition(condition any, args ...any) ([]T, error) {
+func (base *Repository[T]) FindAllByCondition(condition any, args ...any) ([]T, error) {
 	var entities []T
 	err := base.DB.Where(condition, args...).Find(&entities).Error
 	return entities, err
@@ -161,7 +163,12 @@ func (base *BaseRepository[T]) FindAllByCondition(condition any, args ...any) ([
 // Returns:
 // - []T: Slice of matched entities.
 // - error: Error if any occurred during query.
-func (base *BaseRepository[T]) FindAllByConditionWithJoin(relations []string, join string, condition any, args ...any) ([]T, error) {
+func (base *Repository[T]) FindAllByConditionWithJoin(
+	relations []string,
+	join string,
+	condition any,
+	args ...any,
+) ([]T, error) {
 	var entities []T
 	query := base.DB
 	for _, relation := range relations {
@@ -189,7 +196,7 @@ type PaginationResult[T any] struct {
 // Returns:
 // - *PaginationResult[T]: Struct containing paginated result metadata and data.
 // - error: Error if any occurred during the query.
-func (base *BaseRepository[T]) Paginate(filters *gorm.DB, orderBy string, limit, page int) (*PaginationResult[T], error) {
+func (base *Repository[T]) Paginate(filters *gorm.DB, orderBy string, limit, page int) (*PaginationResult[T], error) {
 	var entities []T
 	var total int64
 

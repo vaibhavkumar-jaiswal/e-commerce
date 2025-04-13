@@ -23,14 +23,13 @@ A full-featured e-commerce backend built with **Go**, using the Gin web framewor
 
 ```
 .
-├── cmd/                # Application entry point
 ├── config/             # Configuration loading logic
 ├── database/           # DB initialization, migrations
 ├── docs/               # Swagger docs and OpenAPI definitions
 ├── middleware/         # Custom middleware like auth, logging, etc.
 ├── modules/            # Feature modules (user, product, order, etc.)
 ├── services/           # Service integration like SMTP, SQS, etc
-├── shared/             # Shared code (DTOs, base repository)
+├── models/             # models (tables, struct)
 ├── utils/              # Helper functions (constants, config load data etc.)
 ├── bin/                # Compiled binary output
 ├── .gitignore          # Git ignored files

@@ -1,9 +1,14 @@
+// Package service provides user management operations, including login, email verification,
+// user retrieval, registration, and update functionalities.
+// It interacts with the repository layer to perform CRUD operations and other user-related queries.
+// It also handles JWT token generation and email sending for user verification.
 package service
 
 import (
-	"e-commerce/modules/user_management/dbAccess"
+	"e-commerce/models"
+	"e-commerce/modules/user_management/repository"
 	"e-commerce/services"
-	"e-commerce/shared/models"
+	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
 	"fmt"
 	"strings"
@@ -16,7 +21,7 @@ import (
 // Service provides user management operations, including login, email verification,
 // user retrieval, registration, and update functionalities.
 type Service struct {
-	repo *dbAccess.Repo
+	repo *repository.Repo
 }
 
 // NewUserService creates and returns a new User Service instance by initializing the repository.
@@ -24,7 +29,7 @@ type Service struct {
 //
 //	*Service: A pointer to a new Service instance with its repository initialized.
 func NewUserService() *Service {
-	repo := dbAccess.NewUserRepository()
+	repo := repository.NewUserRepository()
 	return &Service{
 		repo: repo,
 	}
@@ -70,6 +75,27 @@ func (service *Service) Login(data models.Login) (any, error) {
 	response.Expiry = time.Now().Add(time.Duration(helper.ExpiryTime) * time.Minute)
 
 	return response, nil
+}
+
+// Logout logs out a user by storing the provided token in a cache with an expiration.
+// This prevents reuse of the same token after logout.
+//
+// Parameters:
+//   - token: A string representing the user's JWT token to be invalidated.
+//
+// Returns:
+//   - A success message string if logout is successful.
+//   - An error if the token could not be cached for logout invalidation.
+func (service *Service) Logout(token string) (string, error) {
+	_, err := helper.SetCache(
+		constants.LoggedOutKey+":"+token,
+		constants.LoggedOutKey,
+		time.Duration(helper.ExpiryTime)*time.Minute,
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to log out user")
+	}
+	return "User logged out successfully", nil
 }
 
 // GetUserByID retrieves a user by their unique identifier (UUID).
@@ -120,9 +146,9 @@ func (service *Service) GetUserByID(id string) (any, error) {
 //	any: A success message indicating the email is verified.
 //	error: An error if verification fails or other issues occur.
 func (service *Service) VerifyEmail(email, otp string) (any, error) {
-	condition__ := "users.email = ?"
+	unverifiedUserQuery := "users.email = ?"
 
-	user, err := service.repo.GetByCondition(condition__, email)
+	user, err := service.repo.GetByCondition(unverifiedUserQuery, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -143,9 +169,9 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 		return nil, fmt.Errorf("the OTP you entered is expired")
 	}
 
-	otp_ := strings.ReplaceAll(otp, " ", "")
+	sentOtp := strings.ReplaceAll(otp, " ", "")
 
-	if cachedOtp != otp_ {
+	if cachedOtp != sentOtp {
 		return nil, fmt.Errorf("the OTP you entered is incorrect. Please check and try again")
 	}
 
@@ -166,7 +192,12 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	relations := []string{"UserPassword", "Role"}
 	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 
-	users, err := service.repo.FindAllByConditionWithJoin(relations, join, condition, email, true, false)
+	users, err := service.repo.FindAllByConditionWithJoin(
+		relations,
+		join,
+		"users.email = ? AND users.is_verified = true",
+		email,
+	)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -183,16 +214,22 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 		return nil, fmt.Errorf("failed to delete cache")
 	}
 
-	isHtml := true
-	subject, emailBody := helper.GetCredentialEmailFormat(users[0].FullName(), users[0].Email, users[0].UserPassword.Password, isHtml)
+	isHTML := true
+	subject, emailBody := helper.GetCredentialEmailFormat(
+		users[0].FullName(),
+		users[0].Email,
+		users[0].UserPassword.Password,
+		isHTML,
+	)
 
 	go func() {
-		if err := services.SmtpServer.SendEmail(users[0].Email, subject, emailBody, isHtml); err != nil {
+		if err := services.SMTPServer.SendEmail(users[0].Email, subject, emailBody, isHTML); err != nil {
 			fmt.Printf("failed to send email to %s: %v", users[0].Email, err)
 		}
 	}()
 
-	return "Your email has been successfully verified! We've sent your login credentials to your registered email address. Please check your inbox to proceed.", nil
+	return "Your email has been successfully verified! We've sent your login credentials to your " +
+		"registered email address. Please check your inbox to proceed.", nil
 }
 
 // ResendVerificationCode handles the process to resend an OTP verification code
@@ -207,7 +244,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 //	any: A string message confirming that the OTP has been sent.
 //	error: An error if any step fails during processing.
 func (service *Service) ResendVerificationCode(email string) (any, error) {
-	condition := "users.email = ? AND users.is_verified = false"
+	condition := "users.email = ?"
 
 	user, err := service.repo.GetByCondition(condition, email)
 	if err != nil {
@@ -226,8 +263,8 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 	}
 
 	otp := helper.GenerateSecureOTP()
-	isHtml := true
-	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHtml)
+	isHTML := true
+	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHTML)
 
 	_, err = helper.SetCache(user.Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
 	if err != nil {
@@ -235,7 +272,7 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 	}
 
 	go func() {
-		if err := services.SmtpServer.SendEmail(user.Email, subject, emailBody, isHtml); err != nil {
+		if err := services.SMTPServer.SendEmail(user.Email, subject, emailBody, isHTML); err != nil {
 			fmt.Printf("failed to send email to %s: %v", user.Email, err)
 		}
 	}()
@@ -309,8 +346,8 @@ func (service *Service) AddUser(request models.UserRequest) (string, error) {
 	}
 
 	otp := helper.GenerateSecureOTP()
-	isHtml := true
-	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHtml)
+	isHTML := true
+	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHTML)
 
 	_, err = helper.SetCache(user.Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
 	if err != nil {
@@ -318,12 +355,12 @@ func (service *Service) AddUser(request models.UserRequest) (string, error) {
 	}
 
 	go func() {
-		if err := services.SmtpServer.SendEmail(user.Email, subject, emailBody, isHtml); err != nil {
+		if err := services.SMTPServer.SendEmail(user.Email, subject, emailBody, isHTML); err != nil {
 			fmt.Printf("failed to send email to %s: %v", user.Email, err)
 		}
 	}()
 
-	return "Please verify your Email Address. We have sent an OTP to the Email Address.", nil
+	return "We have sent the OTP to your Email address.", nil
 }
 
 // UpdateUser updates an existing user's information based on the provided user ID and new data.
@@ -376,6 +413,17 @@ func (service *Service) UpdateUser(id string, request models.UpdateUserRequest) 
 	return "User upadated successfully.", nil
 }
 
+// PartialUpdateUser updates specific fields of a user based on the provided patch request.
+// It validates the user ID, checks if the user exists and is verified, and then applies only the
+// non-empty fields from the request to the user's record.
+//
+// Parameters:
+//   - id: a string representing the UUID of the user to update.
+//   - request: PatchUserRequest struct containing optional fields to update.
+//
+// Returns:
+//   - A success message string upon successful update.
+//   - An error if the user ID is invalid, user is not found, or any DB operation fails.
 func (service *Service) PartialUpdateUser(id string, request models.PatchUserRequest) (string, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
@@ -428,6 +476,16 @@ func (service *Service) PartialUpdateUser(id string, request models.PatchUserReq
 	return "User upadated successfully.", nil
 }
 
+// DeleteUser deletes a verified user identified by the given ID from the database.
+// It first validates the user ID format, checks for user existence and verification,
+// and then performs a soft or hard delete based on repository logic.
+//
+// Parameters:
+//   - id: A string representing the UUID of the user to delete.
+//
+// Returns:
+//   - A success message string if the user is successfully deleted.
+//   - An error if the ID is invalid, user does not exist, or deletion fails.
 func (service *Service) DeleteUser(id string) (string, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {

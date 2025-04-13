@@ -1,8 +1,9 @@
+// Package configdata provides a handler to preload static data into the database from JSON files.
 package configdata
 
 import (
 	"e-commerce/database/connections"
-	"e-commerce/shared/models"
+	"e-commerce/models"
 	"e-commerce/utils/helper"
 
 	"encoding/json"
@@ -15,14 +16,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// LoadDataHandler godoc
-// @Summary      Preload Static Data
-// @Description  Loads static reference data (e.g., categories, roles, etc.) into the database from predefined JSON files. This is typically used during application setup or environment bootstrap.
-// @Tags         Admin
-// @Produce      json
-// @Success      200  {object} models.LoadDataSuccess        "Data loaded successfully from JSON files"
-// @Failure      500  {object} models.InternalServerError    "Error occurred while loading data"
-// @Router       /load-data [get]
+// PreLoadDataHandler godoc
+//
+//	@Summary		Preload Static Data
+//	@Description	Loads static reference data into the database from JSON files.
+//	@Tags			Admin
+//	@Produce		json
+//	@Success		200	{object}	models.LoadDataSuccess		"Data loaded successfully from JSON files"
+//	@Failure		500	{object}	models.InternalServerError	"Error occurred while loading data"
+//	@Router			/load-data [get]
 func PreLoadDataHandler(context *gin.Context) {
 
 	fileNames := []string{
@@ -57,12 +59,26 @@ func PreLoadDataHandler(context *gin.Context) {
 		fileLocation := filepath.Join(currentDir, "utils", "config_data", fileName+".json")
 
 		// Open the JSON file.
-		file, err := os.Open(fileLocation)
+		file, err := os.Open(fileLocation) // #nosec G304
 		if err != nil {
-			helper.ResponseWriter(context, http.StatusBadRequest, fmt.Sprintf("Failed to locate/open JSON file (%s)", fileLocation))
+			helper.ResponseWriter(
+				context,
+				http.StatusBadRequest,
+				fmt.Sprintf("Failed to locate/open JSON file (%s)", fileLocation),
+			)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				helper.ResponseWriter(
+					context,
+					http.StatusBadRequest,
+					fmt.Sprintf("Failed to close JSON file (%s)", fileLocation),
+				)
+				return
+			}
+		}()
 
 		// Use reflection to create a new slice of the model type.
 		model := fileNameModels[fileName]
@@ -74,7 +90,11 @@ func PreLoadDataHandler(context *gin.Context) {
 		modelSlicePtr.Elem().Set(modelSlice)
 		decoder := json.NewDecoder(file)
 		if err := decoder.Decode(modelSlicePtr.Interface()); err != nil {
-			helper.ResponseWriter(context, http.StatusBadRequest, fmt.Sprintf("Failed to decode JSON data for %s: %v", fileName, err))
+			helper.ResponseWriter(
+				context,
+				http.StatusBadRequest,
+				fmt.Sprintf("Failed to decode JSON data for %s: %v", fileName, err),
+			)
 			return
 		}
 
@@ -96,61 +116,3 @@ func PreLoadDataHandler(context *gin.Context) {
 
 	helper.ResponseWriter(context, http.StatusOK, "Data inserted successfully!")
 }
-
-/*
-func PreLoadDataHandler(context *gin.Context) {
-
-	// fileNames := []string{
-	// 	"address_type",
-	// 	"user_role",
-	// }
-
-	fileNames := map[string]any{
-		"address_type": []models.AddressType{},
-		"user_role": []models.Role{},
-	}
-
-	for fileName, model := range fileNames {
-		currentDir, err := os.Getwd()
-		if err != nil {
-			helper.ResponseWriter(context, http.StatusBadRequest, "Cannot get current working directory.")
-			return
-		}
-
-		fileLocation := filepath.Join(currentDir, "config", fileName)
-
-		file, err := os.Open(fileLocation)
-		if err != nil {
-			helper.ResponseWriter(context, http.StatusBadRequest, fmt.Sprintf("failed to locate/open JSON file (%s)", fileLocation))
-			return
-		}
-		defer file.Close()
-
-		// var users []model
-		modelType__ := reflect.TypeOf(model)
-		modelType := reflect.New(modelType__)
-
-		var data []modelType
-		decoder := json.NewDecoder(file)
-		if err := decoder.Decode(&users); err != nil {
-			panic("failed to decode JSON data")
-		}
-	}
-
-	for _, user := range users {
-		result := connections.GetDB().Create(&user)
-
-		// Check for errors during the insertion.
-		if result.Error != nil {
-			fmt.Println("Error inserting data:", result.Error)
-			context.JSON(http.StatusBadRequest, "Error while inserting data...!")
-			context.Abort()
-			return
-		} else {
-			fmt.Println("Data inserted successfully!")
-		}
-	}
-	context.JSON(http.StatusOK, "Data inserted successfully...!")
-
-}
-*/

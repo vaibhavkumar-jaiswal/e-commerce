@@ -1,3 +1,4 @@
+// Package models contains User and UserPassword models
 package models
 
 import (
@@ -10,24 +11,27 @@ import (
 // User represents a user in the system
 // @Description User model
 type User struct {
-	base.BaseModel `swaggerignore:"true"`
-	UserID         uuid.UUID    `gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique" json:"user_id"`
-	FirstName      string       `gorm:"not null" json:"first_name" validate:"required,alpha,min=2,max=50"`
-	LastName       string       `gorm:"not null" json:"last_name" validate:"required,alpha,min=2,max=50"`
-	Email          string       `gorm:"unique;index;not null" json:"email" validate:"required,email"`
-	Phone          string       `gorm:"not null" json:"phone" validate:"required,numeric,len=10"`
-	RoleID         uuid.UUID    `gorm:"not null" json:"role_id"`
-	Role           Role         `gorm:"foreignKey:RoleID;references:RoleID"`
-	IsVerified     bool         `gorm:"default:false" json:"is_verified"`
-	UserPassword   UserPassword `gorm:"foreignKey:UserID;references:UserID" json:"user_passwords"`
+	base.Model   `swaggerignore:"true"`
+	UserID       uuid.UUID    `gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique" json:"user_id"`
+	FirstName    string       `gorm:"not null" json:"first_name" validate:"required,alpha,min=2,max=50"`
+	LastName     string       `gorm:"not null" json:"last_name" validate:"required,alpha,min=2,max=50"`
+	Email        string       `gorm:"unique;index;not null" json:"email" validate:"required,email"`
+	Phone        string       `gorm:"not null" json:"phone" validate:"required,numeric,len=10"`
+	RoleID       uuid.UUID    `gorm:"not null" json:"role_id"`
+	Role         Role         `gorm:"foreignKey:RoleID;references:RoleID"`
+	IsVerified   bool         `gorm:"default:false" json:"is_verified"`
+	UserPassword UserPassword `gorm:"foreignKey:UserID;references:UserID" json:"user_passwords"`
 }
 
+// TableName sets custom table name for User model
 func (User) TableName() string {
 	return "users"
 }
 
+// UserList defines a slice of User
 type UserList []User
 
+// UserResponse defines how user data is returned to clients
 type UserResponse struct {
 	UserID    uuid.UUID `json:"user_id" example:"123e4567-e89b-12d3-a456-426614174000"`
 	FirstName string    `json:"first_name" example:"John"`
@@ -38,6 +42,7 @@ type UserResponse struct {
 	RoleID    uuid.UUID `json:"role_id" example:"97d699c0-24ff-48dc-b64a-c29353fa8865"`
 } //@name UserResponse
 
+// ResponseObj formats a single user to UserResponse
 func (user User) ResponseObj() UserResponse {
 	result := UserResponse{
 		UserID:    user.UserID,
@@ -52,6 +57,7 @@ func (user User) ResponseObj() UserResponse {
 	return result
 }
 
+// ResponseList formats a list of users to a list of UserResponse
 func (userList UserList) ResponseList() []UserResponse {
 	var result []UserResponse
 	for _, obj := range userList {
@@ -60,31 +66,34 @@ func (userList UserList) ResponseList() []UserResponse {
 	return result
 }
 
+// FullName returns the concatenated full name of the user
 func (user *User) FullName() string {
 	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 }
 
+// UserPassword holds encrypted password for a specific user
 type UserPassword struct {
-	base.BaseModel `swaggerignore:"true"`
+	base.Model     `swaggerignore:"true"`
 	UserPasswordID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique" json:"user_password_id"`
 	Password       string    `json:"password"`
 	UserID         uuid.UUID `gorm:"not null;uniqueIndex;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user_id"`
 }
 
+// TableName sets custom table name for UserPassword model
 func (UserPassword) TableName() string {
 	return "user_passwords"
 }
 
-// ===========================================
-
+// UserRequest defines expected data when creating a new user
 type UserRequest struct {
-	FirstName string    `json:"first_name" validate:"required,alpha,min=2,max=50"`
-	LastName  string    `json:"last_name" validate:"required,alpha,min=2,max=50"`
+	FirstName string    `json:"first_name" validate:"required,alpha,min=2,max=20"`
+	LastName  string    `json:"last_name" validate:"required,alpha,min=2,max=20"`
 	Email     string    `json:"email" validate:"required,email"`
 	Phone     string    `json:"phone" validate:"required,numeric,len=10"`
 	RoleID    uuid.UUID `json:"role_id" validate:"required"`
 } //@name UserRequest
 
+// UpdateUserRequest defines fields required when updating an existing user
 type UpdateUserRequest struct {
 	FirstName string    `json:"first_name" validate:"required,alpha,min=2,max=50"`
 	LastName  string    `json:"last_name" validate:"required,alpha,min=2,max=50"`
@@ -93,6 +102,7 @@ type UpdateUserRequest struct {
 	RoleID    uuid.UUID `json:"role_id" validate:"required"`
 } //@name UserRequest
 
+// PatchUserRequest allows partial update (PATCH) of user fields
 type PatchUserRequest struct {
 	FirstName string    `json:"first_name" validate:"alpha,min=2,max=50"`
 	LastName  string    `json:"last_name" validate:"alpha,min=2,max=50"`
@@ -101,6 +111,7 @@ type PatchUserRequest struct {
 	RoleID    uuid.UUID `json:"role_id"`
 } //@name UserRequest
 
+// UserQueryParams defines allowed query parameters for filtering users
 type UserQueryParams struct {
 	FirstName  *string    `form:"first_name" query:"ILIKE"`
 	LastName   *string    `form:"last_name" query:"ILIKE"`

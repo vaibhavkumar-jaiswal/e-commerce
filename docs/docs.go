@@ -22,35 +22,14 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/load-data": {
-            "get": {
-                "description": "Loads static reference data (e.g., categories, roles, etc.) into the database from predefined JSON files. This is typically used during application setup or environment bootstrap.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Preload Static Data",
-                "responses": {
-                    "200": {
-                        "description": "Data loaded successfully from JSON files",
-                        "schema": {
-                            "$ref": "#/definitions/LoadDataSuccess"
-                        }
-                    },
-                    "500": {
-                        "description": "Error occurred while loading data",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
+        "/auth/login": {
             "post": {
-                "description": "Authenticates a user using email and password. Returns a JWT token on successful login that can be used to authorize future requests.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Authenticates a user using email and password and returns a JWT token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -100,9 +79,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/load-data": {
+            "get": {
+                "description": "Loads static reference data into the database from JSON files.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Preload Static Data",
+                "responses": {
+                    "200": {
+                        "description": "Data loaded successfully from JSON files",
+                        "schema": {
+                            "$ref": "#/definitions/LoadDataSuccess"
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred while loading data",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Invalidate the user's access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout user",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "schema": {
+                            "$ref": "#/definitions/Success-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or malformed request body",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials or unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/user/register": {
             "post": {
-                "description": "Registers a new user account by accepting valid email and other details. On success, returns the success message. Input validation and uniqueness checks are enforced.",
+                "description": "Registers a new user account by accepting valid email and other details.",
                 "consumes": [
                     "application/json"
                 ],
@@ -342,6 +393,182 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update user details based on the provided ID and request body",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update User Request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/UpdateUserSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a user identified by the provided ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/DeleteUserSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Partially update user fields using PATCH request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Partially update user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Partial Update User Request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User partially updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/UpdateUserSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -355,6 +582,19 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "DeleteUserSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "User deleted successfully."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -442,6 +682,18 @@ const docTemplate = `{
                 }
             }
         },
+        "Success-string": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "UnauthorizedError": {
             "type": "object",
             "properties": {
@@ -452,6 +704,19 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "UpdateUserSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "User upadated successfully."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -470,13 +735,6 @@ const docTemplate = `{
         },
         "UserRequest": {
             "type": "object",
-            "required": [
-                "email",
-                "first_name",
-                "last_name",
-                "phone",
-                "role_id"
-            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -541,7 +799,7 @@ const docTemplate = `{
                 },
                 "token": {
                     "type": "string",
-                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                    "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx_adQssw5c"
                 },
                 "user_details": {
                     "$ref": "#/definitions/UserResponse"

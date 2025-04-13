@@ -1,3 +1,4 @@
+// Package route provides the routing logic for user management operations.
 package route
 
 import (
@@ -7,28 +8,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UserManagementRoutes sets up the routes for user management operations.
 func UserManagementRoutes(router *gin.Engine) {
 	handler := handler.NewUserHandler()
 
-	router.POST(auth.PublicRoute("/login"), handler.Login)
+	router.POST(auth.PublicRoute("/auth/login"), handler.Login)
+
+	router.DELETE("/auth/logout", handler.Logout)
 	{
-		user := router.Group("/user")
+		router.POST(auth.PublicRoute("/user/register"), handler.AddUser)
 
-		user.POST(auth.PublicRoute("/register"), handler.AddUser)
+		router.POST(auth.PublicRoute("/user/verification"), handler.VerifyEmail)
 
-		user.POST(auth.PublicRoute("/verification"), handler.VerifyEmail)
+		router.POST(auth.PublicRoute("/user/resend-verification"), handler.ResendVerificationCode)
 
-		user.POST(auth.PublicRoute("/resend-verification"), handler.ResendVerificationCode)
+		router.GET("/user", handler.GetUsers)
 
-		user.GET("", handler.GetUsers)
+		router.GET("/user/:id", handler.GetUserByID)
 
-		user.GET("/:id", handler.GetUserByID)
+		router.PUT("/user/:id", handler.UpdateUser)
 
-		user.PUT("/:id", handler.UpdateUser)
+		router.PATCH("/user/:id", handler.PartialUpdateUser)
 
-		user.PATCH("/:id", handler.PartialUpdateUser)
-
-		user.DELETE("/:id", handler.DeleteUser)
+		router.DELETE("/user/:id", handler.DeleteUser)
 	}
 
 }

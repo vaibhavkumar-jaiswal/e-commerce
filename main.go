@@ -1,14 +1,14 @@
-// @title       E-Commerce API
-// @version     1.0
-// @description This is the API documentation for E-Commerce
-// @host        localhost:8080
-// @BasePath    /
-// @schemes     http
+//	@title			E-Commerce API
+//	@version		1.0
+//	@description	This is the API documentation for E-Commerce
+//	@host			localhost:8080
+//	@BasePath		/
+//	@schemes		http
 
-// @contact.name  Vaibhav Jaiswal
-// @contact.email vaibhav.jaiswal@gmail.com
-// @license.name  MIT
-// @license.url   https://opensource.org/licenses/MIT
+// @contact.name	Vaibhav Jaiswal
+// @contact.email	vaibhav.jaiswal@gmail.com
+// @license.name	MIT
+// @license.url	https://opensource.org/licenses/MIT
 package main
 
 import (
@@ -26,13 +26,12 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	configs "e-commerce/config"
+	"e-commerce/config"
 	"e-commerce/database/connections"
 	"e-commerce/database/migrations"
 	_ "e-commerce/docs"
 	"e-commerce/middleware/auth"
 	"e-commerce/middleware/compression"
-	"e-commerce/middleware/ratelimiting"
 	"e-commerce/middleware/requestlog"
 	"e-commerce/services"
 	configdata "e-commerce/utils/config_data"
@@ -48,7 +47,7 @@ func main() {
 	}
 
 	// Get all config data from config.json file (including config.env data)
-	configData, err := configs.LoadConfig()
+	configData, err := config.LoadConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Failed to read config data: %s\n", err)
 		os.Exit(1)
@@ -71,7 +70,7 @@ func main() {
 	}
 
 	// init email smtp connection & initialize a global smtp connection variable to use for email notification
-	services.InitSmtpServer(configData.SmtpServer)
+	services.InitSMTPServer(configData.SMTPServer)
 
 	router := gin.Default()
 
@@ -99,13 +98,13 @@ func main() {
 
 	router.GET(auth.PublicRoute("/load-data"), configdata.PreLoadDataHandler)
 
-	router.Use(
-		ratelimiting.RateLimiter(
-			configData.RateLimit.MaxRequest,
-			time.Duration(int(time.Minute)*configData.RateLimit.Duration),
-			connections.GetRedisClient(),
-		),
-	)
+	// router.Use(
+	// 	ratelimiting.RateLimiter(
+	// 		configData.RateLimit.MaxRequest,
+	// 		time.Duration(int(time.Minute)*configData.RateLimit.Duration),
+	// 		connections.GetRedisClient(),
+	// 	),
+	// )
 
 	if err := migrations.RunMigrations(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Migration error: %s\n", err)
@@ -116,8 +115,11 @@ func main() {
 	registerRoute(router)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%s", configData.Server.Port),
-		Handler: router,
+		Addr:              fmt.Sprintf(":%s", configData.Server.Port),
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
 	}
 
 	fmt.Printf("Server running on port: %s\n", configData.Server.Port)
