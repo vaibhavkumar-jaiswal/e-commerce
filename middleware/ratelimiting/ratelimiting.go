@@ -1,8 +1,10 @@
+// Package ratelimiting implements rate limiting middleware for limiting requests
+// per user/IP based on a given time window. It uses Redis for storing and tracking request counts.
 package ratelimiting
 
 import (
 	"context"
-	"e-commerce/shared/models"
+	"e-commerce/models"
 	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
 	"net/http"
@@ -14,32 +16,23 @@ import (
 )
 
 var ctx = context.Background()
+var publicRouteList = map[string]bool{}
 
-// RateLimiterMiddleware - Limits requests per user (based on IP) in a given time window
+// RateLimiter is a middleware function that limits the number of requests a user can make
+// within a specified time window. It uses Redis to track request counts.
 func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.Client) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		// Get user IP
 		// userIP := context.ClientIP()
 		path := context.FullPath()
 
-		switch path {
-		case "/login":
-			context.Next()
-			return
-		case "/user/verification":
-			context.Next()
-			return
-		case "/user/resend-verification":
-			context.Next()
-			return
-		}
-
 		var key string
 
-		if path == "/user/register" {
-			key = constants.RATE_LIMIT_PREFIX + context.ClientIP()
+		_, ok := publicRouteList[path]
+		if ok {
+			key = constants.RateLimitPrefix + context.ClientIP()
 		} else {
-			userDetails, exists := context.Get(constants.USER_DATA_CONTEXT_KEY)
+			userDetails, exists := context.Get(constants.UserDataContextKey)
 			if !exists {
 				helper.ResponseWriter(context, http.StatusUnauthorized, "Unauthorized")
 				context.Abort()
@@ -80,4 +73,11 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 		// Continue to the next middleware/handler
 		context.Next()
 	}
+}
+
+// PublicRoute registers a public route that will use different key to store rate limiting.
+// Returns the route string.
+func PublicRoute(route string) string {
+	publicRouteList[route] = true
+	return route
 }

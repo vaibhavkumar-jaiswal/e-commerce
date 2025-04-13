@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # exit on error
+set -e
 
 PORT=8080
 
@@ -16,6 +16,9 @@ go clean
 
 echo "🎨 Formatting code..."
 goimports -w .
+
+echo "🎨 Formatting swagger comments..."
+swag fmt
 
 echo "📝 Creating Swagger Docs..."
 rm -rf docs

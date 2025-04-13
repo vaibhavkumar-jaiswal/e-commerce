@@ -1,4 +1,5 @@
-package configs
+// Package config contains the logic for loading and parsing the application's configuration.
+package config
 
 import (
 	"encoding/json"
@@ -7,10 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"e-commerce/shared/models"
+	"e-commerce/models"
 	"e-commerce/utils/constants"
 )
 
+// LoadConfig loads configuration settings from a JSON file based on the current environment.
+// It returns a pointer to the ConfigData struct and any error encountered during the process.
 func LoadConfig() (*models.ConfigData, error) {
 
 	fileName := getConfigFileName()
@@ -25,11 +28,16 @@ func LoadConfig() (*models.ConfigData, error) {
 
 	fileLocation := filepath.Join(currentDir, "config", fileName)
 
-	file, err := os.Open(fileLocation)
+	file, err := os.Open(fileLocation) // #nosec G304
 	if err != nil {
 		return nil, fmt.Errorf("failed to locate/open JSON file (%s)", fileLocation)
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}()
 
 	var configData models.ConfigData
 
@@ -38,24 +46,26 @@ func LoadConfig() (*models.ConfigData, error) {
 		return nil, fmt.Errorf("failed to decode JSON data")
 	}
 
-	configData.DBConnection.User = os.Getenv(constants.DB_USER)
-	configData.DBConnection.Password = os.Getenv(constants.DB_PASSWORD)
-	configData.SmtpServer.UserName = os.Getenv(constants.SMTP_USER)
-	configData.SmtpServer.Password = os.Getenv(constants.SMTP_PASSWORD)
+	configData.DBConnection.User = os.Getenv(constants.DbUser)
+	configData.DBConnection.Password = os.Getenv(constants.DbPassword)
+	configData.SMTPServer.UserName = os.Getenv(constants.SMTPUser)
+	configData.SMTPServer.Password = os.Getenv(constants.SMTPPassword)
 
-	if os.Getenv(constants.APP_ENV) == constants.LOCAL_ENV {
-		configData.SmtpServer.Port = 1025
-		configData.SmtpServer.Host = "localhost"
-		configData.SmtpServer.UserName = ""
-		configData.SmtpServer.Password = ""
+	if os.Getenv(constants.AppEnv) == constants.LocalEnv {
+		configData.SMTPServer.Port = 1025
+		configData.SMTPServer.Host = "localhost"
+		configData.SMTPServer.UserName = ""
+		configData.SMTPServer.Password = ""
 	}
 
 	return &configData, nil
 }
 
+// getConfigFileName determines the appropriate configuration file based on the environment.
+// It defaults to "local.json" if the environment variable is not set.
 func getConfigFileName() string {
-	if os.Getenv(constants.APP_ENV) == "" {
+	if os.Getenv(constants.AppEnv) == "" {
 		return "local.json"
 	}
-	return strings.ToLower(os.Getenv(constants.APP_ENV)) + ".json"
+	return strings.ToLower(os.Getenv(constants.AppEnv)) + ".json"
 }

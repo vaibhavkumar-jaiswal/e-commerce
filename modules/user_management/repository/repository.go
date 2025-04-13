@@ -1,10 +1,14 @@
-package dbAccess
+// Package repository provides the implementation of the user repository
+// for the user management module.
+// It interacts with the database and provides methods for CRUD operations
+// and other user-related queries.
+package repository
 
 import (
 	"e-commerce/database/connections"
 
 	"e-commerce/base"
-	"e-commerce/shared/models"
+	"e-commerce/models"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +16,7 @@ import (
 // Repo defines a concrete implementation of user-specific repository
 // using the generic BaseRepository from the shared layer.
 type Repo struct {
-	base base.BaseRepository[models.User]
+	base base.Repository[models.User]
 }
 
 // NewUserRepository creates a new instance of the User repository.
@@ -20,7 +24,7 @@ type Repo struct {
 // - *Repo: Pointer to a new Repo with injected DB and Redis client.
 func NewUserRepository() *Repo {
 	return &Repo{
-		base: *base.NewBaseRepository[models.User](connections.GetDB(), connections.GetRedisClient()),
+		base: *base.NewRepository[models.User](connections.GetDB(), connections.GetRedisClient()),
 	}
 }
 
@@ -85,7 +89,12 @@ func (repo Repo) FindAll(filters *gorm.DB, orderBy string, limit, offset int) ([
 // Returns:
 // - []models.User: Slice of users.
 // - error: Error if any occurred during the query.
-func (repo Repo) FindAllByConditionWithJoin(relations []string, join string, condition any, args ...any) ([]models.User, error) {
+func (repo Repo) FindAllByConditionWithJoin(
+	relations []string,
+	join string,
+	condition any,
+	args ...any,
+) ([]models.User, error) {
 	return repo.base.FindAllByConditionWithJoin(relations, join, condition, args...)
 }
 
@@ -120,6 +129,12 @@ func (repo Repo) Update(user *models.User) error {
 	return repo.base.Update(user)
 }
 
+// Delete deletes an existing user record (Soft Delete).
+// Parameters:
+// - user (*models.User): Pointer to the user model.
+// - isSoftDelete (bool): flag for delete options.
+// Returns:
+// - error: Error if any occurred during the delete.
 func (repo Repo) Delete(user *models.User, isSoftDelete bool) error {
 	return repo.base.Delete(user, isSoftDelete)
 }

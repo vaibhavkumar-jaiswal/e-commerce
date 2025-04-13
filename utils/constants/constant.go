@@ -1,40 +1,59 @@
+// Package constants provides a collection of constant values used throughout the application.
 package constants
 
-// .env keys
+// Environment constants
+const (
+	LocalEnv = "local"
+	DevEnv   = "dev"
+	TestEnv  = "test"
+)
 
-const LOCAL_ENV = "local"
-const DEV_ENV = "dev"
-const TEST_ENV = "test"
+// LoggedOutKey - Logged out key for Redis
+const LoggedOutKey = "logged_out"
 
-const DB_USER = "DB_USER"
-const DB_PASSWORD = "DB_PASSWORD"
-const APP_ENV = "APP_ENV"
-const APP_PORT = "APP_PORT"
-const REDIS_HOST = "REDIS_HOST"
-const REDIS_PORT = "REDIS_PORT"
-const LOG_LEVEL = "LOG_LEVEL"
-const SMTP_USER = "EMAIL_USER"
-const SMTP_PASSWORD = "EMAIL_PASSWORD"
-const EMAIL_FROM = "EMAIL_FROM"
-const COMPANY_NAME = "COMPANY_NAME"
+// file permissions
+const (
+	DirPerm750  = 0o750 //rwx for owner, rx for group, none for others
+	FilePerm640 = 0o640 // rw for owner, r for group, none for others
+)
 
-// const DB_USER = "DB_USER"
+// Environment variable keys
+const (
+	DbUser       = "DB_USER"
+	DbPassword   = "DB_PASSWORD"
+	AppEnv       = "APP_ENV"
+	AppPort      = "APP_PORT"
+	RedisHost    = "REDIS_HOST"
+	RedisPort    = "REDIS_PORT"
+	LogLevel     = "LOG_LEVEL"
+	SMTPUser     = "EMAIL_USER"
+	SMTPPassword = "EMAIL_PASSWORD"
+	EmailFrom    = "EMAIL_FROM"
+	CompanyName  = "COMPANY_NAME"
+)
 
-const SECRETE_KEY = "JWT_SECRET"
-
-const USER_JWT_CLAIM_KEY = "user_details"
-const USER_DATA_CONTEXT_KEY = "logged_in_user_data"
-const USER_DATA_OF_SESSION = "user_data_session"
+// JWT related constants
+const (
+	SecretKey          = "JWT_SECRET"
+	UserJwtClaimKey    = "user_details"
+	UserDataContextKey = "logged_in_user_data"
+	UserDataOfSession  = "user_data_session"
+)
 
 // key for setting response in the gin context
-const RESPONSE_DATA_KEY = "response_data"
-const RESPONSE_STATUS_KEY = "response_status"
+const (
+	ResponseDataKey   = "response_data"
+	ResponseStatusKey = "response_status"
+)
 
-const RATE_LIMIT_PREFIX = "rate_limit_"
+// RateLimitPrefix - ratelimit key prefix
+const RateLimitPrefix = "rate_limit_"
 
-const OTP_VERIFICATION_EMAIL_SUBJECT = `%s | Email Verification OTP`
+// OtpVerificationEmailSubject - otp verification email subject
+const OtpVerificationEmailSubject = `%s | Email Verification OTP`
 
-const OTP_VERIFICATION_EMAIL_FORMAT_HTML = `
+// OtpVerificationEmailFormatHTML - otp verification email body in HTML format
+const OtpVerificationEmailFormatHTML = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -91,10 +110,16 @@ const OTP_VERIFICATION_EMAIL_FORMAT_HTML = `
             <h1>%s</h1>
         </div>
         <p>Hi %s,</p>
-        <p>Thank you for signing up with us! Please use the One-Time Password (OTP) below to verify your email address:</p>
+        <p>
+          Thank you for signing up with us! Please use the One-Time Password 
+          (OTP) below to verify your email address:
+        </p>
         <div class="otp">%s</div>
         <p>This OTP is valid for the next 10 minutes. Please do not share this code with anyone.</p>
-        <p>If you did not request this, please ignore this email or contact our support team at <a href="mailto:support@shopify.com">support@shopify.com</a>.</p>
+        <p>
+          If you did not request this, please ignore this email or contact our support team at 
+          <a href="mailto:support@shopify.com">support@shopify.com</a>.
+        </p>
         <div class="footer">
             © %d Shopify Pvt Ltd. All rights reserved.
         </div>
@@ -103,7 +128,8 @@ const OTP_VERIFICATION_EMAIL_FORMAT_HTML = `
 </html>
 `
 
-const OTP_VERIFICATION_EMAIL_FORMAT_TXT = `
+// OtpVerificationEmailFormatTxt - otp verification email body in plain text format
+const OtpVerificationEmailFormatTxt = `
 Dear %s,
 
 Thank you for signing up with %s! To verify your email address, please use the One-Time Password (OTP) provided below:
@@ -124,12 +150,15 @@ Best regards,
 ---
 
 **Disclaimer:**  
-This email and any attachments are confidential and intended solely for the recipient. If you are not the intended recipient, please notify us immediately and delete this email.
+This email and any attachments are confidential and intended solely for the recipient. 
+If you are not the intended recipient, please notify us immediately and delete this email.
 `
 
-const SHARE_CREDENTIAL_EMAIL_SUBJECT = `Welcome to %s - Your Login Credentials`
+// ShareCredentialEmailSubject - share credential email subject
+const ShareCredentialEmailSubject = `Welcome to %s - Your Login Credentials`
 
-const SHARE_CREDENTIAL_EMAIL_FORMAT_HTML = `
+// ShareCredentialEmailFormatHTML - share credential email body in HTML format
+const ShareCredentialEmailFormatHTML = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -181,7 +210,11 @@ const SHARE_CREDENTIAL_EMAIL_FORMAT_HTML = `
       </ul>
       
       <p>For security reasons, we recommend changing your password after your first login.</p>
-      <p>If you have any questions or need assistance, please contact us at <a href="mailto:support@shopify.com">support@shopify.com</a> or visit our Help Center.</p>
+      <p>
+        If you have any questions or need assistance, please contact us at 
+        <a href="mailto:support@shopify.com">support@shopify.com</a> 
+        or visit our Help Center.
+      </p>
       <p>Thank you for choosing <span class="highlight">%s</span>!</p>
       <div class="footer">
         <p>&copy; %d Shopify Pvt Ltd. All rights reserved.</p>
@@ -189,9 +222,10 @@ const SHARE_CREDENTIAL_EMAIL_FORMAT_HTML = `
     </div>
   </body>
 </html>
-`
+` // #nosec G101
 
-const SHARE_CREDENTIAL_EMAIL_FORMAT_TXT = `
+// ShareCredentialEmailFormatTxt - share credential email body in plain text format
+const ShareCredentialEmailFormatTxt = `
 Dear %s,
 
 Congratulations! Your account has been successfully created on %s.
@@ -205,10 +239,11 @@ You can now log in to your account using the credentials provided above.
 
 For security purposes, we recommend changing your password after your first login.
 
-If you have any questions or need further assistance, feel free to contact us at support@shopify.com or visit our Help Center.
+If you have any questions or need further assistance, feel free to contact us at 
+support@shopify.com or visit our Help Center.
 
 Thank you for choosing %s!
 
 Best regards,  
 %s
-`
+` // #nosec G101

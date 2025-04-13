@@ -1,3 +1,4 @@
+// Package requestid provides middleware to manage unique request IDs for tracing and logging.
 package requestid
 
 import (
@@ -5,6 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
+// RequestID is a Gin middleware that ensures every incoming request has a unique ID.
+// If the "X-Request-ID" header is not present, it generates a new UUID.
+// The request ID is stored in the context and set in the response header.
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID := c.GetHeader("X-Request-ID")

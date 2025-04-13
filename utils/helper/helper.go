@@ -2,14 +2,13 @@ package helper
 
 import (
 	"e-commerce/database/connections"
-	"e-commerce/shared/models"
+	"e-commerce/models"
 	"e-commerce/utils/constants"
 
 	cryptRand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"math/big"
-	mathRand "math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,8 +19,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// ExpiryTime - jwt token expiry time in minutes
 var ExpiryTime int
+
+// OtpExpTime - OTP expiry time in minutes
 var OtpExpTime int
+
 var passwordLength int
 var otpLength int
 var redisClient *redis.Client
@@ -36,9 +39,9 @@ func InitiateHelper(config models.ConfigData) {
 	redisClient = connections.GetRedisClient()
 }
 
-// it converts the embedding struct into JSON format
+// StructToJSON converts the embedding struct into JSON format
 // and returns the JSON string
-func StructToJson(data any) string {
+func StructToJSON(data any) string {
 	v, err := json.MarshalIndent(data, "", "   ")
 	if err != nil {
 		return fmt.Sprintf("Error: %s", err)
@@ -46,9 +49,9 @@ func StructToJson(data any) string {
 	return string(v)
 }
 
-// it converts the JSON string into the embedding struct
+// JSONToStruct converts the JSON string into the embedding struct
 // and returns the struct
-func JsonToStruct[T any](data string) (T, error) {
+func JSONToStruct[T any](data string) (T, error) {
 	var v T
 	err := json.Unmarshal([]byte(data), &v)
 	if err != nil {
@@ -57,7 +60,7 @@ func JsonToStruct[T any](data string) (T, error) {
 	return v, nil
 }
 
-// it calculates the offset for pagination
+// CalculateOffset calculates the offset for pagination
 // based on the page number and limit provided.
 func CalculateOffset(page, limit string) int {
 	pageInt := StringToInt(page)
@@ -71,7 +74,7 @@ func CalculateOffset(page, limit string) int {
 	return offset
 }
 
-// it converts the string to int
+// StringToInt converts the string to int
 // and returns the int value
 func StringToInt(str string) int {
 	result, err := strconv.Atoi(str)
@@ -82,42 +85,27 @@ func StringToInt(str string) int {
 	return result
 }
 
-// it converts the int to string
+// IntToString converts the int to string
 // and returns the string value
 func IntToString(num int) string {
 	return strconv.Itoa(num)
 }
 
-// it converts the float to int
-// and returns the int value
-// Note: This function currently returns 0 as the implementation is not provided.
-// You can implement the conversion logic as per your requirement.
-func FloatToInt(num float64) int {
-	return 0
-}
-
-// it is used to recover from panics in the application.
-// It logs the panic message and returns a JSON response with a 500 status code.
-func CustomRecovery(context *gin.Context) {
-	if r := recover(); r != nil {
-		fmt.Printf("\n-------------------exception-------------------: \n%#v", r)
-		context.JSON(500, gin.H{"data": "Internal Server Error"})
-		return
-	}
-}
-
-// it is used to create a JWT token with claims.
+// CreateJwtWithClaims is used to create a JWT token with claims.
 // It takes the data as input and returns the JWT token and a boolean indicating success or failure.
 func CreateJwtWithClaims(data any) (string, bool) {
 	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims[constants.USER_JWT_CLAIM_KEY] = data
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "Failed to create auth token", false
+	}
+	claims[constants.UserJwtClaimKey] = data
 
 	// Set token expiration time (e.g., 1 hour from now)
 	expirationTime := time.Now().Add(time.Duration(ExpiryTime) * time.Minute)
 	claims["exp"] = expirationTime.Unix()
 
-	jwtToken, err := token.SignedString([]byte(os.Getenv(constants.SECRETE_KEY)))
+	jwtToken, err := token.SignedString([]byte(os.Getenv(constants.SecretKey)))
 	if err != nil {
 		return "Failed to generate auth token", false
 	}
@@ -125,7 +113,7 @@ func CreateJwtWithClaims(data any) (string, bool) {
 	return jwtToken, true
 }
 
-// it is used to write the response to the client.
+// ResponseWriter is used to write the response to the client.
 // It takes the context, status code, and data as input.
 func ResponseWriter[T any](cxt *gin.Context, status int, data T) {
 	var response any
@@ -151,55 +139,92 @@ func GeneratePassword() string {
 		"0123456789" +
 		"!@#$%^&*()-_=+[]{}<>?/"
 
-	// Create a new random generator with its own seed
-	r := mathRand.New(mathRand.NewSource(time.Now().UnixNano()))
-
-	// Create the password
 	password := make([]byte, passwordLength)
+
 	for i := range password {
-		password[i] = charset[r.Intn(len(charset))]
+		num, err := cryptRand.Int(cryptRand.Reader, big.NewInt(int64(len(charset))))
+		if err != nil {
+			fmt.Println("Error generating random number:", err)
+			return ""
+		}
+
+		password[i] = charset[num.Int64()]
 	}
+
 	return string(password)
 }
 
-// get email verification email format (subject, emailbody)
-func GetEmailVerificationFormat(emailToName string, otp string, isHtml bool) (string, string) {
-	companyName := os.Getenv(constants.COMPANY_NAME)
-	subject := fmt.Sprintf(constants.OTP_VERIFICATION_EMAIL_SUBJECT, companyName)
-	if isHtml {
+// GetEmailVerificationFormat generates the email format for OTP verification and returns email subject and body.
+func GetEmailVerificationFormat(emailToName string, otp string, isHTML bool) (string, string) {
+	companyName := os.Getenv(constants.CompanyName)
+	subject := fmt.Sprintf(constants.OtpVerificationEmailSubject, companyName)
+	if isHTML {
 		currentYear := time.Now().Year()
-		return subject, fmt.Sprintf(constants.OTP_VERIFICATION_EMAIL_FORMAT_HTML, companyName, emailToName, otp, currentYear)
-	} else {
-		return subject, fmt.Sprintf(constants.OTP_VERIFICATION_EMAIL_FORMAT_TXT, emailToName, companyName, otp, companyName, companyName, companyName)
-	}
-}
-
-// get login credential email format (subject, emailbody)
-func GetCredentialEmailFormat(emailToName string, userID string, password string, isHtml bool) (string, string) {
-	companyName := os.Getenv(constants.COMPANY_NAME)
-	subject := fmt.Sprintf(constants.SHARE_CREDENTIAL_EMAIL_SUBJECT, companyName)
-	if isHtml {
-		currentYear := time.Now().Year()
-		return subject, fmt.Sprintf(constants.SHARE_CREDENTIAL_EMAIL_FORMAT_HTML, companyName, emailToName, userID, password, companyName, currentYear)
-	} else {
-		return subject, fmt.Sprintf(constants.SHARE_CREDENTIAL_EMAIL_FORMAT_TXT, emailToName, companyName, userID, password, companyName, companyName)
+		return subject,
+			fmt.Sprintf(
+				constants.OtpVerificationEmailFormatHTML,
+				companyName,
+				emailToName,
+				otp,
+				currentYear,
+			)
 	}
 
+	return subject,
+		fmt.Sprintf(
+			constants.OtpVerificationEmailFormatTxt,
+			emailToName,
+			companyName,
+			otp,
+			companyName,
+			companyName,
+			companyName,
+		)
 }
 
-// GenerateOTP generates a numeric OTP of the specified length
+// GetCredentialEmailFormat generates the email format for sharing credentials and returns email subject and body.
+func GetCredentialEmailFormat(emailToName string, userID string, password string, isHTML bool) (string, string) {
+	companyName := os.Getenv(constants.CompanyName)
+	subject := fmt.Sprintf(constants.ShareCredentialEmailSubject, companyName)
+	if isHTML {
+		currentYear := time.Now().Year()
+		return subject,
+			fmt.Sprintf(
+				constants.ShareCredentialEmailFormatHTML,
+				companyName,
+				emailToName,
+				userID,
+				password,
+				companyName,
+				currentYear,
+			)
+	}
+
+	return subject,
+		fmt.Sprintf(
+			constants.ShareCredentialEmailFormatTxt,
+			emailToName,
+			companyName,
+			userID,
+			password,
+			companyName,
+			companyName,
+		)
+
+}
+
+// GenerateSecureOTP generates a numeric OTP of the specified length
 func GenerateSecureOTP() string {
 	const digits = "0123456789"
 	otp := make([]byte, otpLength)
 
 	for i := range otp {
-		// Generate a secure random index
 		num, err := cryptRand.Int(cryptRand.Reader, big.NewInt(int64(len(digits))))
 		if err != nil {
 			fmt.Println("Error generating random number:", err)
 			return ""
 		}
-		// Map the random index to a digit
+
 		otp[i] = digits[num.Int64()]
 	}
 

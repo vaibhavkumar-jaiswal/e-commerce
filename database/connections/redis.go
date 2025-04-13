@@ -1,16 +1,19 @@
+// Package connections manages the initialization, connection, and de-initialization of the Redis client.
 package connections
 
 import (
 	"context"
 	"fmt"
 
-	"e-commerce/shared/models"
+	"e-commerce/models"
 
 	redisCache "github.com/redis/go-redis/v9"
 )
 
 var redisClient *redisCache.Client
 
+// InitRedis initializes the Redis client using the provided Redis connection configuration.
+// It verifies the connection by performing a Ping operation.
 func InitRedis(redisConnection *models.RedisConn) error {
 	redisClient = redisCache.NewClient(&redisCache.Options{
 		Addr: redisConnection.Address,
@@ -26,6 +29,7 @@ func InitRedis(redisConnection *models.RedisConn) error {
 	return nil
 }
 
+// DeInitRedis closes the Redis connection and cleans up resources.
 func DeInitRedis() error {
 	// Close Redis connection
 	fmt.Printf("\nClosing redis connection...!")
@@ -36,6 +40,7 @@ func DeInitRedis() error {
 	return nil
 }
 
+// GetRedisClient returns the current Redis client instance.
 func GetRedisClient() *redisCache.Client {
 	return redisClient
 }

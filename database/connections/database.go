@@ -1,10 +1,11 @@
+// Package connections manages the initialization, connection, and de-initialization of the database.
 package connections
 
 import (
 	"fmt"
 	"time"
 
-	"e-commerce/shared/models"
+	"e-commerce/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,22 +14,24 @@ import (
 var db *gorm.DB
 var err error
 
+// InitDB initializes the database connection using the given DBConnection configuration.
+// It also configures connection pooling options for optimal performance.
 func InitDB(dbConnection *models.DBConnection) error {
 	db, err = gorm.Open(postgres.Open(dbConnection.GetDBConnectionString()))
 	if err != nil {
-		fmt.Printf("err create DB connection: %#v", err)
+		fmt.Println("err create DB connection: ", err)
 		return err
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		fmt.Printf("err connecting to DB: %#v", err)
+		fmt.Println("err connecting to DB: ", err)
 		return err
 	}
 
 	err = sqlDB.Ping()
 	if err != nil {
-		fmt.Printf("err connecting to DB: %#v", err)
+		fmt.Println("err connecting to DB: ", err)
 		return err
 	}
 
@@ -44,6 +47,7 @@ func InitDB(dbConnection *models.DBConnection) error {
 	return nil
 }
 
+// DeInitDB closes the database connection and cleans up resources.
 func DeInitDB() error {
 	fmt.Printf("\nClosing db, redis connections...!")
 	sqlDB, err := db.DB()
@@ -60,10 +64,7 @@ func DeInitDB() error {
 	return nil
 }
 
+// GetDB returns the current DB instance.
 func GetDB() *gorm.DB {
-	// if os.Getenv(constants.APP_ENV) == "" || strings.ToLower(os.Getenv(constants.APP_ENV)) == "local" {
-	// 	return db.Debug()
-	// 	// return db
-	// }
 	return db
 }
