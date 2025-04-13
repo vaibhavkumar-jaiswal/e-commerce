@@ -3,7 +3,7 @@ package route
 
 import (
 	"e-commerce/middleware/auth"
-	"e-commerce/modules/user_management/handler"
+	"e-commerce/modules/user/handler"
 
 	"github.com/gin-gonic/gin"
 )

@@ -6,7 +6,8 @@ package service
 
 import (
 	"e-commerce/models"
-	"e-commerce/modules/user_management/repository"
+	"e-commerce/modules/user/dtos"
+	"e-commerce/modules/user/repository"
 	"e-commerce/services"
 	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
@@ -46,7 +47,7 @@ func NewUserService() *Service {
 //
 //	any: Typically a models.LoginResponse on success.
 //	error: An error if authentication fails or other issues occur.
-func (service *Service) Login(data models.Login) (any, error) {
+func (service *Service) Login(data dtos.Login) (any, error) {
 	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 	condition := "users.email = ? AND user_passwords.password = ? AND users.is_verified = true"
 
@@ -69,7 +70,7 @@ func (service *Service) Login(data models.Login) (any, error) {
 		return nil, fmt.Errorf("not able to create jwt token, please try again")
 	}
 
-	var response models.LoginResponse
+	var response dtos.LoginResponse
 	response.UserDetails = user
 	response.AuthorizationToken = token
 	response.Expiry = time.Now().Add(time.Duration(helper.ExpiryTime) * time.Minute)
@@ -292,7 +293,7 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 //
 //	[]models.UserResponse: A slice of user response objects.
 //	error: An error if no data is found or if any operation fails.
-func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.UserResponse, error) {
+func (service *Service) GetUsers(queryParams *dtos.UserQueryParams) ([]models.UserResponse, error) {
 	queryParams.IsVerified = true
 
 	filter := service.repo.GetFilter()
@@ -326,7 +327,7 @@ func (service *Service) GetUsers(queryParams *models.UserQueryParams) ([]models.
 //
 //	string: A success message instructing the user to verify their email.
 //	error: An error if the creation or OTP email sending fails.
-func (service *Service) AddUser(request models.UserRequest) (string, error) {
+func (service *Service) AddUser(request dtos.UserRequest) (string, error) {
 	user := models.User{
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
@@ -376,7 +377,7 @@ func (service *Service) AddUser(request models.UserRequest) (string, error) {
 //
 //	any: Typically a user response object with updated details.
 //	error: An error if the update process fails.
-func (service *Service) UpdateUser(id string, request models.UpdateUserRequest) (string, error) {
+func (service *Service) UpdateUser(id string, request dtos.UpdateUserRequest) (string, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
 		return "", fmt.Errorf("invalid id format, expects uuid")
@@ -424,7 +425,7 @@ func (service *Service) UpdateUser(id string, request models.UpdateUserRequest) 
 // Returns:
 //   - A success message string upon successful update.
 //   - An error if the user ID is invalid, user is not found, or any DB operation fails.
-func (service *Service) PartialUpdateUser(id string, request models.PatchUserRequest) (string, error) {
+func (service *Service) PartialUpdateUser(id string, request dtos.PatchUserRequest) (string, error) {
 	parsedUUID, err := uuid.Parse(id)
 	if err != nil {
 		return "", fmt.Errorf("invalid id format, expects uuid")

@@ -52,7 +52,7 @@
                     "200": {
                         "description": "Authenticated successfully with JWT token",
                         "schema": {
-                            "$ref": "#/definitions/Success-LoginResponse"
+                            "$ref": "#/definitions/Success-dtos_LoginResponse"
                         }
                     },
                     "400": {
@@ -667,11 +667,11 @@
                 }
             }
         },
-        "Success-LoginResponse": {
+        "Success-dtos_LoginResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.LoginResponse"
+                    "$ref": "#/definitions/dtos.LoginResponse"
                 },
                 "success": {
                     "type": "boolean",
@@ -787,7 +787,7 @@
                 }
             }
         },
-        "models.LoginResponse": {
+        "dtos.LoginResponse": {
             "type": "object",
             "properties": {
                 "expiry": {

@@ -16,6 +16,7 @@ func validateStruct(s any) map[string]string {
 		return nil
 	}
 
+	fmt.Println("Validation error:", err)
 	validationErrors, ok := err.(validator.ValidationErrors)
 	if !ok {
 		return map[string]string{

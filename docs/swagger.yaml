@@ -68,10 +68,10 @@ definitions:
     required:
     - email
     type: object
-  Success-LoginResponse:
+  Success-dtos_LoginResponse:
     properties:
       data:
-        $ref: '#/definitions/models.LoginResponse'
+        $ref: '#/definitions/dtos.LoginResponse'
       success:
         example: true
         type: boolean
@@ -153,7 +153,7 @@ definitions:
         example: 123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
-  models.LoginResponse:
+  dtos.LoginResponse:
     properties:
       expiry:
         example: "2025-05-01T12:00:00Z"
@@ -246,7 +246,7 @@ paths:
         "200":
           description: Authenticated successfully with JWT token
           schema:
-            $ref: '#/definitions/Success-LoginResponse'
+            $ref: '#/definitions/Success-dtos_LoginResponse'
         "400":
           description: Invalid or malformed request body
           schema:

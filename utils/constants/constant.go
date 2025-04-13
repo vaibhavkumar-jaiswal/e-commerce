@@ -13,8 +13,8 @@ const LoggedOutKey = "logged_out"
 
 // file permissions
 const (
-	DirPerm750  = 0o750 //rwx for owner, rx for group, none for others
-	FilePerm640 = 0o640 // rw for owner, r for group, none for others
+	DirPerm750  = 0750 //rwx for owner, rx for group, none for others
+	FilePerm640 = 0640 // rw for owner, r for group, none for others
 )
 
 // Environment variable keys

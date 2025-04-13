@@ -3,3 +3,4 @@ bin
 referenceConfig.txt
 coding-problems.txt
 logs
+.DS_Store

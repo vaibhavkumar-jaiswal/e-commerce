@@ -32,6 +32,8 @@ import (
 	_ "e-commerce/docs"
 	"e-commerce/middleware/auth"
 	"e-commerce/middleware/compression"
+	"e-commerce/middleware/ratelimiting"
+	"e-commerce/middleware/requestid"
 	"e-commerce/middleware/requestlog"
 	"e-commerce/services"
 	configdata "e-commerce/utils/config_data"
@@ -98,13 +100,15 @@ func main() {
 
 	router.GET(auth.PublicRoute("/load-data"), configdata.PreLoadDataHandler)
 
-	// router.Use(
-	// 	ratelimiting.RateLimiter(
-	// 		configData.RateLimit.MaxRequest,
-	// 		time.Duration(int(time.Minute)*configData.RateLimit.Duration),
-	// 		connections.GetRedisClient(),
-	// 	),
-	// )
+	router.Use(
+		ratelimiting.RateLimiter(
+			configData.RateLimit.MaxRequest,
+			time.Duration(int(time.Minute)*configData.RateLimit.Duration),
+			connections.GetRedisClient(),
+		),
+	)
+
+	router.Use(requestid.RequestID())
 
 	if err := migrations.RunMigrations(); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ Migration error: %s\n", err)
@@ -148,5 +152,5 @@ func main() {
 		fmt.Printf("\nServer forced to shutdown : %s\n", err)
 	}
 
-	fmt.Printf("\nServers shut down...!")
+	fmt.Printf("\nServers shut down...!\n\n")
 }

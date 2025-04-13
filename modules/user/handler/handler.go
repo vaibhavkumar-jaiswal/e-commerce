@@ -2,8 +2,9 @@
 package handler
 
 import (
-	"e-commerce/models"
-	"e-commerce/modules/user_management/service"
+	_ "e-commerce/models" // for swagger documentation
+	"e-commerce/modules/user/dtos"
+	"e-commerce/modules/user/service"
 	"e-commerce/utils/helper"
 	"net/http"
 	"strings"
@@ -33,15 +34,15 @@ func NewUserHandler() *Handler {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			loginData	body		models.Login							true	"User login credentials"
-//	@Success		200			{object}	models.SuccessResponse[LoginResponse]	"Authenticated successfully with JWT token"
-//	@Failure		400			{object}	models.BadRequestError					"Invalid or malformed request body"
-//	@Failure		401			{object}	models.UnauthorizedError				"Invalid credentials or unauthorized access"
-//	@Failure		500			{object}	models.InternalServerError				"Unexpected server error"
+//	@Param			loginData	body		dtos.Login									true	"User login credentials"
+//	@Success		200			{object}	models.SuccessResponse[dtos.LoginResponse]	"Authenticated successfully with JWT token"
+//	@Failure		400			{object}	models.BadRequestError						"Invalid or malformed request body"
+//	@Failure		401			{object}	models.UnauthorizedError					"Invalid credentials or unauthorized access"
+//	@Failure		500			{object}	models.InternalServerError					"Unexpected server error"
 //	@Router			/auth/login [post]
 func (handler *Handler) Login(context *gin.Context) {
 
-	loginData, validationErr := helper.BindAndValidate[models.Login](context)
+	loginData, validationErr := helper.BindAndValidate[dtos.Login](context)
 	if validationErr != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
 		return
@@ -116,31 +117,20 @@ func (handler *Handler) GetUserByID(context *gin.Context) {
 //	@Tags			User Registration
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.EmailOTPRequest		true	"Email and OTP"
+//	@Param			request	body		dtos.EmailOTPRequest		true	"Email and OTP"
 //	@Success		200		{object}	models.User					"User verified successfully"
 //	@Failure		400		{object}	models.BadRequestError		"Missing or invalid OTP/email"
 //	@Failure		500		{object}	models.InternalServerError	"Internal server error"
 //	@Router			/user/verify-email [post]
 func (handler *Handler) VerifyEmail(context *gin.Context) {
 
-	request, validationErr := helper.BindAndValidate[map[string]string](context)
+	request, validationErr := helper.BindAndValidate[dtos.EmailOTPRequest](context)
 	if validationErr != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
 		return
 	}
 
-	otp, ok := request["otp"]
-	if !ok || otp == "" {
-		helper.ResponseWriter(context, http.StatusBadRequest, "Please provide OTP for verification.")
-		return
-	}
-
-	email, ok := request["email"]
-	if !ok || email == "" {
-		helper.ResponseWriter(context, http.StatusBadRequest, "Please provide Email for verification.")
-		return
-	}
-	user, err := handler.service.VerifyEmail(email, otp)
+	user, err := handler.service.VerifyEmail(request.Email, request.OTP)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
@@ -156,26 +146,20 @@ func (handler *Handler) VerifyEmail(context *gin.Context) {
 //	@Tags			User Registration
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		models.ResendEmailRequest	true	"Email for which to resend OTP"
+//	@Param			request	body		dtos.ResendEmailRequest		true	"Email for which to resend OTP"
 //	@Success		200		{object}	models.User					"OTP sent successfully"
 //	@Failure		400		{object}	models.BadRequestError		"Missing or invalid email"
 //	@Failure		500		{object}	models.InternalServerError	"Internal server error"
 //	@Router			/user/resend-verification [post]
 func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 
-	request, validationErr := helper.BindAndValidate[map[string]string](context)
+	request, validationErr := helper.BindAndValidate[dtos.EmailOTPRequest](context)
 	if validationErr != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
 		return
 	}
 
-	email, ok := request["email"]
-	if !ok || email == "" {
-		helper.ResponseWriter(context, http.StatusBadRequest, "Please provide Email for verification.")
-		return
-	}
-
-	user, err := handler.service.ResendVerificationCode(email)
+	user, err := handler.service.ResendVerificationCode(request.Email)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
@@ -200,7 +184,7 @@ func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 //	@Router			/users [get]
 func (handler *Handler) GetUsers(context *gin.Context) {
 
-	queryParams := &models.UserQueryParams{}
+	queryParams := &dtos.UserQueryParams{}
 
 	if err := context.ShouldBindQuery(queryParams); err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
@@ -223,15 +207,15 @@ func (handler *Handler) GetUsers(context *gin.Context) {
 //	@Tags			User Registration
 //	@Accept			json
 //	@Produce		json
-//	@Param			userDetails	body		models.UserRequest			true	"User registration payload"
-//	@Success		200			{object}	models.UserRegisterSuccess	"Registration successful"
+//	@Param			userDetails	body		dtos.UserRequest			true	"User registration payload"
+//	@Success		200			{object}	dtos.UserRegisterSuccess	"Registration successful"
 //	@Failure		400			{object}	models.BadRequestError		"Invalid input or missing required fields"
 //	@Failure		401			{object}	models.UnauthorizedError	"Unauthorized access attempt"
 //	@Failure		500			{object}	models.InternalServerError	"Unexpected server error"
 //	@Router			/user/register [post]
 func (handler *Handler) AddUser(context *gin.Context) {
 
-	request, validationErr := helper.BindAndValidate[models.UserRequest](context)
+	request, validationErr := helper.BindAndValidate[dtos.UserRequest](context)
 	if validationErr != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
 		return
@@ -281,8 +265,8 @@ func handleUserUpdate[T any](
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string						true	"User ID"
-//	@Param			body	body		models.UpdateUserRequest	true	"Update User Request"
-//	@Success		200		{object}	models.UpdateUserSuccess	"User updated successfully"
+//	@Param			body	body		dtos.UpdateUserRequest		true	"Update User Request"
+//	@Success		200		{object}	dtos.UpdateUserSuccess		"User updated successfully"
 //	@Failure		400		{object}	models.BadRequestError		"Invalid input or missing required fields"
 //	@Failure		401		{object}	models.UnauthorizedError	"Unauthorized access attempt"
 //	@Failure		500		{object}	models.InternalServerError	"Unexpected server error"
@@ -303,8 +287,8 @@ func (handler *Handler) UpdateUser(context *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string						true	"User ID"
-//	@Param			body	body		models.PatchUserRequest		true	"Partial Update User Request"
-//	@Success		200		{object}	models.UpdateUserSuccess	"User partially updated successfully"
+//	@Param			body	body		dtos.PatchUserRequest		true	"Partial Update User Request"
+//	@Success		200		{object}	dtos.UpdateUserSuccess		"User partially updated successfully"
 //	@Failure		400		{object}	models.BadRequestError		"Invalid input or missing required fields"
 //	@Failure		401		{object}	models.UnauthorizedError	"Unauthorized access attempt"
 //	@Failure		500		{object}	models.InternalServerError	"Unexpected server error"
@@ -324,7 +308,7 @@ func (handler *Handler) PartialUpdateUser(context *gin.Context) {
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id	path		string						true	"User ID"
-//	@Success		200	{object}	models.DeleteUserSuccess	"User deleted successfully"
+//	@Success		200	{object}	dtos.DeleteUserSuccess		"User deleted successfully"
 //	@Failure		400	{object}	models.BadRequestError		"Invalid input or missing required fields"
 //	@Failure		401	{object}	models.UnauthorizedError	"Unauthorized access attempt"
 //	@Failure		500	{object}	models.InternalServerError	"Unexpected server error"

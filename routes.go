@@ -1,12 +1,14 @@
 package main
 
 import (
-	"e-commerce/modules/user_management/route"
+	product "e-commerce/modules/product/route"
+	user "e-commerce/modules/user/route"
 
 	"github.com/gin-gonic/gin"
 )
 
 // registerRoute registers all routes for the application
 func registerRoute(router *gin.Engine) {
-	route.UserManagementRoutes(router)
+	user.UserManagementRoutes(router)
+	product.ProductRoutes(router)
 }

@@ -31,24 +31,6 @@ type ForbiddenError struct {
 	Error   string `json:"error" example:"Forbidden"`
 } // @name ForbiddenError
 
-// UserRegisterSuccess represents a successful user registration response.
-type UserRegisterSuccess struct {
-	Success bool   `json:"success" example:"true"`
-	Data    string `json:"data" example:"Please verify your Email Address. We have sent an OTP to the Email Address."`
-} // @name UserRegisterSuccess
-
-// UpdateUserSuccess represents a successful user update response.
-type UpdateUserSuccess struct {
-	Success bool   `json:"success" example:"true"`
-	Data    string `json:"data" example:"User upadated successfully."`
-} // @name UpdateUserSuccess
-
-// DeleteUserSuccess represents a successful user delete response.
-type DeleteUserSuccess struct {
-	Success bool   `json:"success" example:"true"`
-	Data    string `json:"data" example:"User deleted successfully."`
-} // @name DeleteUserSuccess
-
 // LoadDataSuccess represents a successful load data response.
 type LoadDataSuccess struct {
 	Success bool   `json:"success" example:"true"`

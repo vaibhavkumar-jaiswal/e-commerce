@@ -55,7 +55,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Authenticated successfully with JWT token",
                         "schema": {
-                            "$ref": "#/definitions/Success-LoginResponse"
+                            "$ref": "#/definitions/Success-dtos_LoginResponse"
                         }
                     },
                     "400": {
@@ -670,11 +670,11 @@ const docTemplate = `{
                 }
             }
         },
-        "Success-LoginResponse": {
+        "Success-dtos_LoginResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.LoginResponse"
+                    "$ref": "#/definitions/dtos.LoginResponse"
                 },
                 "success": {
                     "type": "boolean",
@@ -790,7 +790,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.LoginResponse": {
+        "dtos.LoginResponse": {
             "type": "object",
             "properties": {
                 "expiry": {
