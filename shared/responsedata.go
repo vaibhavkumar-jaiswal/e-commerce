@@ -1,7 +1,7 @@
-// Package models provides Success and Error response structures
+// Package shared provides Success and Error response structures
 // for API responses. These structures are used to standardize the format of
 // API responses across the application.
-package models
+package shared
 
 // SuccessResponse represents a successful API response.
 type SuccessResponse[T any] struct {

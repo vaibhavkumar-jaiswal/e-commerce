@@ -8,7 +8,7 @@ import (
 )
 
 // ProductRoutes sets up the routes for product related operations.
-func ProductRoutes(router *gin.Engine) {
+func ProductRoutes(router *gin.RouterGroup) {
 	// handler := handler.NewUserHandler()
 
 	router.GET(auth.PublicRoute("/product"), func(context *gin.Context) {

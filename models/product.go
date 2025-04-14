@@ -9,19 +9,18 @@ import (
 
 // Product represents a product in the e-commerce system.
 type Product struct {
-	base.Model  `swaggerignore:"true"`
-	ProductID   uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"product_id"`
-	Name        string    `gorm:"size:100;not null"`
-	Description string    `gorm:"type:text"`
-	Price       float64   `gorm:"not null"`
-	CategoryID  uuid.UUID `gorm:"type:uuid;not null"`
-	Category    Category  `gorm:"foreignKey:CategoryID"`
+	base.Model        `swaggerignore:"true"`
+	ProductID         uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"product_id"`
+	Name              string          `gorm:"size:100;not null"`
+	Description       string          `gorm:"type:text"`
+	Price             float64         `gorm:"not null"`
+	ProductCategoryID uuid.UUID       `gorm:"type:uuid;not null"`
+	Category          ProductCategory `gorm:"foreignKey:ProductCategoryID;references:ProductCategoryID"`
+	Stock             int             `gorm:"not null"`
+	ImageURL          string          `gorm:"size:255"`
 }
 
-// Category represents a product category in the e-commerce system.
-type Category struct {
-	base.Model        `swaggerignore:"true"`
-	ProductCategoryID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"product_category_id"`
-	ID                uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Name              string    `gorm:"size:100;uniqueIndex;not null"`
+// TableName sets custom table name for Product model
+func (Product) TableName() string {
+	return "products"
 }

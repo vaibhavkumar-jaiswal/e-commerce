@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"e-commerce/models"
+	"e-commerce/shared"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,7 +16,7 @@ var err error
 
 // InitDB initializes the database connection using the given DBConnection configuration.
 // It also configures connection pooling options for optimal performance.
-func InitDB(dbConnection *models.DBConnection) error {
+func InitDB(dbConnection *shared.DBConnection) error {
 	db, err = gorm.Open(postgres.Open(dbConnection.GetDBConnectionString()))
 	if err != nil {
 		fmt.Println("err create DB connection: ", err)
@@ -49,7 +49,7 @@ func InitDB(dbConnection *models.DBConnection) error {
 
 // DeInitDB closes the database connection and cleans up resources.
 func DeInitDB() error {
-	fmt.Printf("\nClosing db, redis connections...!")
+	fmt.Printf("\nClosing db connections...!")
 	sqlDB, err := db.DB()
 	if err != nil {
 		fmt.Printf("\nFailed to get database connection: %#v", err)

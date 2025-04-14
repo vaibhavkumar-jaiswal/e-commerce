@@ -8,6 +8,7 @@ import (
 	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,13 +18,13 @@ import (
 
 var ctx = context.Background()
 var publicRouteList = map[string]bool{}
+var basePath string
 
 // RateLimiter is a middleware function that limits the number of requests a user can make
 // within a specified time window. It uses Redis to track request counts.
 func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.Client) gin.HandlerFunc {
+	basePath = os.Getenv(constants.BasePath)
 	return func(context *gin.Context) {
-		// Get user IP
-		// userIP := context.ClientIP()
 		path := context.FullPath()
 
 		var key string
@@ -78,6 +79,6 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 // PublicRoute registers a public route that will use different key to store rate limiting.
 // Returns the route string.
 func PublicRoute(route string) string {
-	publicRouteList[route] = true
+	publicRouteList[basePath+route] = true
 	return route
 }

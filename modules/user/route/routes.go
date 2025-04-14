@@ -9,7 +9,7 @@ import (
 )
 
 // UserManagementRoutes sets up the routes for user management operations.
-func UserManagementRoutes(router *gin.Engine) {
+func UserManagementRoutes(router *gin.RouterGroup) {
 	handler := handler.NewUserHandler()
 
 	router.POST(auth.PublicRoute("/auth/login"), handler.Login)

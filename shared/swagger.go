@@ -1,5 +1,5 @@
-// Package models provides swagger models for various API responses.
-package models
+// Package shared provides swagger models for various API responses.
+package shared
 
 // UnauthorizedError represents an unauthorized error response.
 type UnauthorizedError struct {

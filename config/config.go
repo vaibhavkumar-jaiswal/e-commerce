@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"e-commerce/models"
+	"e-commerce/shared"
 	"e-commerce/utils/constants"
 )
 
 // LoadConfig loads configuration settings from a JSON file based on the current environment.
 // It returns a pointer to the ConfigData struct and any error encountered during the process.
-func LoadConfig() (*models.ConfigData, error) {
+func LoadConfig() (*shared.ConfigData, error) {
 
 	fileName := getConfigFileName()
 	if fileName == "" {
@@ -39,7 +39,7 @@ func LoadConfig() (*models.ConfigData, error) {
 		}
 	}()
 
-	var configData models.ConfigData
+	var configData shared.ConfigData
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&configData); err != nil {

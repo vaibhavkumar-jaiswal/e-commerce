@@ -15,3 +15,8 @@ type Role struct {
 	Code        string    `gorm:"unique; not null" json:"code"`
 	Description string    `json:"description"`
 }
+
+// TableName sets custom table name for Role model
+func (Role) TableName() string {
+	return "roles"
+}

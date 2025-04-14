@@ -4,6 +4,7 @@ package configdata
 import (
 	"e-commerce/database/connections"
 	"e-commerce/models"
+	_ "e-commerce/shared" // for swagger documentation
 	"e-commerce/utils/helper"
 
 	"encoding/json"
@@ -22,29 +23,35 @@ import (
 //	@Description	Loads static reference data into the database from JSON files.
 //	@Tags			Admin
 //	@Produce		json
-//	@Success		200	{object}	models.LoadDataSuccess		"Data loaded successfully from JSON files"
-//	@Failure		500	{object}	models.InternalServerError	"Error occurred while loading data"
+//	@Success		200	{object}	shared.LoadDataSuccess		"Data loaded successfully from JSON files"
+//	@Failure		500	{object}	shared.InternalServerError	"Error occurred while loading data"
 //	@Router			/load-data [get]
 func PreLoadDataHandler(context *gin.Context) {
 
 	fileNames := []string{
+		"product_category",
 		"address_type",
 		"user_role",
+		"product",
 		"user",
 	}
 
 	fileNameModels := map[string]any{
-		"address_type": models.AddressType{},
-		"user_role":    models.Role{},
-		"user":         models.User{},
+		"product_category": models.ProductCategory{},
+		"address_type":     models.AddressType{},
+		"product":          models.Product{},
+		"user_role":        models.Role{},
+		"user":             models.User{},
 	}
 
 	db := connections.GetDB()
 
 	_ = db.Unscoped().Where("1 = 1").Delete(&models.UserPassword{}).Error
 	_ = db.Unscoped().Where("1 = 1").Delete(&models.Address{}).Error
-	_ = db.Unscoped().Where("1 = 1").Delete(&models.User{}).Error
+	_ = db.Unscoped().Where("1 = 1").Delete(&models.Product{}).Error
+	_ = db.Unscoped().Where("1 = 1").Delete(&models.ProductCategory{}).Error
 	_ = db.Unscoped().Where("1 = 1").Delete(&models.AddressType{}).Error
+	_ = db.Unscoped().Where("1 = 1").Delete(&models.User{}).Error
 	_ = db.Unscoped().Where("1 = 1").Delete(&models.Role{}).Error
 
 	for _, fileName := range fileNames {

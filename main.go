@@ -26,9 +26,9 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
+	"e-commerce/cmd"
 	"e-commerce/config"
 	"e-commerce/database/connections"
-	"e-commerce/database/migrations"
 	_ "e-commerce/docs"
 	"e-commerce/middleware/auth"
 	"e-commerce/middleware/compression"
@@ -61,6 +61,18 @@ func main() {
 		fmt.Printf("\ncan not connect to db...! \nError: %s", err.Error())
 		fmt.Fprintf(os.Stderr, "❌ Failed to connect to DB: %s\n", err)
 		os.Exit(1)
+	}
+
+	// Handle command line commands before running server
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "migrate":
+			cmd.Execute()
+			if err := connections.DeInitDB(); err != nil {
+				fmt.Printf("\nClosing connections : %s\n", err)
+			}
+			return
+		}
 	}
 
 	// init redis connection & initialize a global redis connection variable to use for redis operations
@@ -109,11 +121,6 @@ func main() {
 	)
 
 	router.Use(requestid.RequestID())
-
-	if err := migrations.RunMigrations(); err != nil {
-		fmt.Fprintf(os.Stderr, "❌ Migration error: %s\n", err)
-		os.Exit(1)
-	}
 
 	// Register all routes for the application
 	registerRoute(router)

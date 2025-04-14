@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"e-commerce/models"
+	"e-commerce/shared"
 
 	redisCache "github.com/redis/go-redis/v9"
 )
@@ -14,7 +14,7 @@ var redisClient *redisCache.Client
 
 // InitRedis initializes the Redis client using the provided Redis connection configuration.
 // It verifies the connection by performing a Ping operation.
-func InitRedis(redisConnection *models.RedisConn) error {
+func InitRedis(redisConnection *shared.RedisConn) error {
 	redisClient = redisCache.NewClient(&redisCache.Options{
 		Addr: redisConnection.Address,
 		DB:   redisConnection.DB,

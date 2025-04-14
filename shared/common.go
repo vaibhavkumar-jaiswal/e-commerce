@@ -1,5 +1,5 @@
-// Package models provides common structs used in the application
-package models
+// Package shared provides common structs used in the application
+package shared
 
 import (
 	"github.com/dgrijalva/jwt-go"

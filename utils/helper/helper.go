@@ -2,20 +2,14 @@ package helper
 
 import (
 	"e-commerce/database/connections"
-	"e-commerce/models"
-	"e-commerce/utils/constants"
+	"e-commerce/shared"
 
 	cryptRand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"net/http"
-	"os"
 	"strconv"
-	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -31,7 +25,7 @@ var redisClient *redis.Client
 
 // InitiateHelper initializes the helper package with configuration data
 // and sets up the Redis client.
-func InitiateHelper(config models.ConfigData) {
+func InitiateHelper(config shared.ConfigData) {
 	ExpiryTime = config.SessionTimeOutmin
 	OtpExpTime = config.OtpExpMin
 	passwordLength = config.PasswordLength
@@ -91,46 +85,6 @@ func IntToString(num int) string {
 	return strconv.Itoa(num)
 }
 
-// CreateJwtWithClaims is used to create a JWT token with claims.
-// It takes the data as input and returns the JWT token and a boolean indicating success or failure.
-func CreateJwtWithClaims(data any) (string, bool) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "Failed to create auth token", false
-	}
-	claims[constants.UserJwtClaimKey] = data
-
-	// Set token expiration time (e.g., 1 hour from now)
-	expirationTime := time.Now().Add(time.Duration(ExpiryTime) * time.Minute)
-	claims["exp"] = expirationTime.Unix()
-
-	jwtToken, err := token.SignedString([]byte(os.Getenv(constants.SecretKey)))
-	if err != nil {
-		return "Failed to generate auth token", false
-	}
-
-	return jwtToken, true
-}
-
-// ResponseWriter is used to write the response to the client.
-// It takes the context, status code, and data as input.
-func ResponseWriter[T any](cxt *gin.Context, status int, data T) {
-	var response any
-	if status >= http.StatusBadRequest {
-		response = models.ErrorResponse[T]{
-			Success: false,
-			Error:   data,
-		}
-	} else {
-		response = models.SuccessResponse[T]{
-			Success: true,
-			Data:    data,
-		}
-	}
-	cxt.JSON(status, response)
-}
-
 // GeneratePassword generates a random password of the specified length.
 // It includes uppercase letters, lowercase letters, digits, and special characters.
 func GeneratePassword() string {
@@ -152,65 +106,6 @@ func GeneratePassword() string {
 	}
 
 	return string(password)
-}
-
-// GetEmailVerificationFormat generates the email format for OTP verification and returns email subject and body.
-func GetEmailVerificationFormat(emailToName string, otp string, isHTML bool) (string, string) {
-	companyName := os.Getenv(constants.CompanyName)
-	subject := fmt.Sprintf(constants.OtpVerificationEmailSubject, companyName)
-	if isHTML {
-		currentYear := time.Now().Year()
-		return subject,
-			fmt.Sprintf(
-				constants.OtpVerificationEmailFormatHTML,
-				companyName,
-				emailToName,
-				otp,
-				currentYear,
-			)
-	}
-
-	return subject,
-		fmt.Sprintf(
-			constants.OtpVerificationEmailFormatTxt,
-			emailToName,
-			companyName,
-			otp,
-			companyName,
-			companyName,
-			companyName,
-		)
-}
-
-// GetCredentialEmailFormat generates the email format for sharing credentials and returns email subject and body.
-func GetCredentialEmailFormat(emailToName string, userID string, password string, isHTML bool) (string, string) {
-	companyName := os.Getenv(constants.CompanyName)
-	subject := fmt.Sprintf(constants.ShareCredentialEmailSubject, companyName)
-	if isHTML {
-		currentYear := time.Now().Year()
-		return subject,
-			fmt.Sprintf(
-				constants.ShareCredentialEmailFormatHTML,
-				companyName,
-				emailToName,
-				userID,
-				password,
-				companyName,
-				currentYear,
-			)
-	}
-
-	return subject,
-		fmt.Sprintf(
-			constants.ShareCredentialEmailFormatTxt,
-			emailToName,
-			companyName,
-			userID,
-			password,
-			companyName,
-			companyName,
-		)
-
 }
 
 // GenerateSecureOTP generates a numeric OTP of the specified length

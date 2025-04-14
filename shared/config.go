@@ -1,6 +1,6 @@
-// Package models contains configuration structs and associated methods
+// Package shared contains configuration structs and associated methods
 // that handle the application's environment settings and connections.
-package models
+package shared
 
 import (
 	"fmt"

@@ -30,6 +30,7 @@ const (
 	SMTPPassword = "EMAIL_PASSWORD"
 	EmailFrom    = "EMAIL_FROM"
 	CompanyName  = "COMPANY_NAME"
+	BasePath     = "BASE_PATH"
 )
 
 // JWT related constants

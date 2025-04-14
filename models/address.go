@@ -18,16 +18,12 @@ type Address struct {
 	State         string      `gorm:"size:100;not null"`
 	PostalCode    string      `gorm:"size:20;not null"`
 	Country       string      `gorm:"size:100;not null"`
-	AddressTypeID uuid.UUID   `gorm:"not null"`
+	AddressTypeID uuid.UUID   `gorm:"not null" json:"address_type_id"`
 	AddressType   AddressType `gorm:"foreignKey:AddressTypeID;references:AddressTypeID"`
 	IsPrimary     bool        `gorm:"default:false"`
 }
 
-// AddressType defines categories for addresses (e.g., home, work, billing).
-type AddressType struct {
-	base.Model    `swaggerignore:"true"`
-	AddressTypeID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"address_type_id"`
-	Name          string    `gorm:"not null" json:"name"`
-	Code          string    `gorm:"not null;unique" json:"code"`
-	Description   string    `gorm:"size:255" json:"description"`
+// TableName sets custom table name for Address model
+func (Address) TableName() string {
+	return "addresses"
 }

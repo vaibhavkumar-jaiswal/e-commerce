@@ -7,17 +7,35 @@ import (
 	"fmt"
 )
 
-// RunMigrations runs database migrations for the defined models. It uses GORM's AutoMigrate method
-// to ensure the database schema is up to date with the model definitions.
-func RunMigrations() error {
+// RunMigrations runs GORM migrations for selected models.
+// If no model names are provided, it migrates all.
+func RunMigrations(dbModels ...string) error {
 	db := connections.GetDB()
 
-	modelsToMigrate := []any{
-		&models.Role{},
-		&models.User{},
-		&models.UserPassword{},
-		&models.AddressType{},
-		&models.Address{},
+	modelMap := map[string]any{
+		"Role":            &models.Role{},
+		"User":            &models.User{},
+		"Product":         &models.Product{},
+		"Address":         &models.Address{},
+		"AddressType":     &models.AddressType{},
+		"UserPassword":    &models.UserPassword{},
+		"ProductCategory": &models.ProductCategory{},
+	}
+
+	var modelsToMigrate []any
+
+	if len(dbModels) == 0 {
+		for _, model := range modelMap {
+			modelsToMigrate = append(modelsToMigrate, model)
+		}
+	} else {
+		for _, name := range dbModels {
+			if model, ok := modelMap[name]; ok {
+				modelsToMigrate = append(modelsToMigrate, model)
+			} else {
+				return fmt.Errorf("unknown model: %s", name)
+			}
+		}
 	}
 
 	for _, model := range modelsToMigrate {
@@ -25,5 +43,6 @@ func RunMigrations() error {
 			return fmt.Errorf("migration failed for %T: %w", model, err)
 		}
 	}
+	fmt.Println("Migrations completed successfully.")
 	return nil
 }

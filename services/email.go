@@ -3,7 +3,7 @@
 package services
 
 import (
-	"e-commerce/models"
+	"e-commerce/shared"
 	"e-commerce/utils/constants"
 	"fmt"
 	"os"
@@ -13,7 +13,7 @@ import (
 
 // EmailNotification holds SMTP server details used to send emails.
 // This is an alias for models.SMTPServer but scoped to this service.
-type EmailNotification models.SMTPServer
+type EmailNotification shared.SMTPServer
 
 // SMTPServer is a singleton instance used across the application to send emails.
 // It must be initialized before calling SendEmail.
@@ -25,7 +25,7 @@ var SMTPServer *EmailNotification
 //   - smtpDetails: A struct containing SMTP server configurations such as Host, Port, UserName, and Password.
 //
 // This function should be called once during application startup.
-func InitSMTPServer(smtpDetails models.SMTPServer) {
+func InitSMTPServer(smtpDetails shared.SMTPServer) {
 	SMTPServer = &EmailNotification{
 		Host:     smtpDetails.Host,
 		Port:     smtpDetails.Port,

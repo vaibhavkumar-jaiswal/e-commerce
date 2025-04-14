@@ -20,9 +20,11 @@ import (
 )
 
 var publicRouteList = map[string]bool{}
+var basePath string
 
 // Auth returns a Gin handler function to authenticate requests using JWT.
 func Auth() gin.HandlerFunc {
+	basePath = os.Getenv(constants.BasePath)
 	return authenticate
 }
 
@@ -117,7 +119,7 @@ func authenticate(context *gin.Context) {
 
 // PublicRoute registers a route as public, meaning it doesn't require authentication.
 func PublicRoute(route string) string {
-	publicRouteList[route] = true
+	publicRouteList[basePath+route] = true
 	ratelimiting.PublicRoute(route)
 	return route
 }
