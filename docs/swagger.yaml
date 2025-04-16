@@ -60,6 +60,25 @@ definitions:
     - password
     - username
     type: object
+  ProductResponse:
+    properties:
+      category:
+        $ref: '#/definitions/models.ProductCategory'
+      description:
+        type: string
+      imageURL:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      productCategoryID:
+        type: string
+      stock:
+        type: integer
+    type: object
   ResendEmailRequest:
     properties:
       email:
@@ -163,6 +182,23 @@ definitions:
         type: string
       user_details:
         $ref: '#/definitions/UserResponse'
+    type: object
+  models.ProductCategory:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/models.ProductCategory'
+        type: array
+      code:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+      product_category_id:
+        type: string
     type: object
   models.Role:
     properties:
@@ -310,6 +346,55 @@ paths:
       summary: Logout user
       tags:
       - Authentication
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Retrieve a list of products with optional filters like category, sorting,
+        and pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: page_size
+        type: integer
+      - description: Product Category filter
+        in: query
+        name: product_category_id
+        type: string
+      - description: Sort by field (e.g., price, name)
+        in: query
+        name: sort_by
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ProductResponse'
+            type: array
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: List products
+      tags:
+      - Products
   /user/{id}:
     get:
       description: Retrieves a user's details by their unique ID.

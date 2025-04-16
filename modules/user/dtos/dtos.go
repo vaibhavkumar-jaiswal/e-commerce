@@ -45,7 +45,6 @@ type UserQueryParams struct {
 	Email      *string    `form:"email"`
 	Phone      *string    `form:"phone"`
 	RoleID     *uuid.UUID `form:"role_id"`
-	IsDeleted  *bool      `form:"is_deleted"`
 	IsVerified bool       `form:"is_verified"`
 }
 

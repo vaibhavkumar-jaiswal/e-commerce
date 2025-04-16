@@ -1,0 +1,17 @@
+[
+    {
+        "product_category_id": "adb211ab-bcd8-4e62-9d91-93f9cbfe00a2",
+        "parent_id": null,
+        "name": "Electronics",
+        "code": "ELEC",
+        "description": "This is a Electronics product"
+
+    },
+    {
+        "product_category_id": "1244928c-386e-4fb6-a6a3-e0e65cba090b",
+        "parent_id": null,
+        "name": "Fashion",
+        "code": "FASH",
+        "description": "This is a Fashion product"
+    }
+]

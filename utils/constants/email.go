@@ -1,54 +1,6 @@
-// Package constants provides a collection of constant values used throughout the application.
+// Package constants provides a collection of constant values used for email notifications
+// and templates throughout the application.
 package constants
-
-// Environment constants
-const (
-	LocalEnv = "local"
-	DevEnv   = "dev"
-	TestEnv  = "test"
-)
-
-// LoggedOutKey - Logged out key for Redis
-const LoggedOutKey = "logged_out"
-
-// file permissions
-const (
-	DirPerm750  = 0750 //rwx for owner, rx for group, none for others
-	FilePerm640 = 0640 // rw for owner, r for group, none for others
-)
-
-// Environment variable keys
-const (
-	DbUser       = "DB_USER"
-	DbPassword   = "DB_PASSWORD"
-	AppEnv       = "APP_ENV"
-	AppPort      = "APP_PORT"
-	RedisHost    = "REDIS_HOST"
-	RedisPort    = "REDIS_PORT"
-	LogLevel     = "LOG_LEVEL"
-	SMTPUser     = "EMAIL_USER"
-	SMTPPassword = "EMAIL_PASSWORD"
-	EmailFrom    = "EMAIL_FROM"
-	CompanyName  = "COMPANY_NAME"
-	BasePath     = "BASE_PATH"
-)
-
-// JWT related constants
-const (
-	SecretKey          = "JWT_SECRET"
-	UserJwtClaimKey    = "user_details"
-	UserDataContextKey = "logged_in_user_data"
-	UserDataOfSession  = "user_data_session"
-)
-
-// key for setting response in the gin context
-const (
-	ResponseDataKey   = "response_data"
-	ResponseStatusKey = "response_status"
-)
-
-// RateLimitPrefix - ratelimit key prefix
-const RateLimitPrefix = "rate_limit_"
 
 // OtpVerificationEmailSubject - otp verification email subject
 const OtpVerificationEmailSubject = `%s | Email Verification OTP`

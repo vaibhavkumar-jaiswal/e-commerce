@@ -19,7 +19,7 @@ type Address struct {
 	PostalCode    string      `gorm:"size:20;not null"`
 	Country       string      `gorm:"size:100;not null"`
 	AddressTypeID uuid.UUID   `gorm:"not null" json:"address_type_id"`
-	AddressType   AddressType `gorm:"foreignKey:AddressTypeID;references:AddressTypeID"`
+	AddressType   AddressType `gorm:"foreignKey:AddressTypeID;references:AddressTypeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 	IsPrimary     bool        `gorm:"default:false"`
 }
 

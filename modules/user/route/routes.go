@@ -3,14 +3,14 @@ package route
 
 import (
 	"e-commerce/middleware/auth"
-	"e-commerce/modules/user/handler"
+	userHandler "e-commerce/modules/user/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
 // UserManagementRoutes sets up the routes for user management operations.
 func UserManagementRoutes(router *gin.RouterGroup) {
-	handler := handler.NewUserHandler()
+	handler := userHandler.NewUserHandler()
 
 	router.POST(auth.PublicRoute("/auth/login"), handler.Login)
 

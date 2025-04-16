@@ -15,18 +15,28 @@ func RunMigrations(dbModels ...string) error {
 	modelMap := map[string]any{
 		"Role":            &models.Role{},
 		"User":            &models.User{},
-		"Product":         &models.Product{},
-		"Address":         &models.Address{},
-		"AddressType":     &models.AddressType{},
-		"UserPassword":    &models.UserPassword{},
 		"ProductCategory": &models.ProductCategory{},
+		"Product":         &models.Product{},
+		"AddressType":     &models.AddressType{},
+		"Address":         &models.Address{},
+		"UserPassword":    &models.UserPassword{},
+	}
+
+	modelSequence := []string{
+		"Role",
+		"User",
+		"ProductCategory",
+		"Product",
+		"AddressType",
+		"Address",
+		"UserPassword",
 	}
 
 	var modelsToMigrate []any
 
 	if len(dbModels) == 0 {
-		for _, model := range modelMap {
-			modelsToMigrate = append(modelsToMigrate, model)
+		for _, key := range modelSequence {
+			modelsToMigrate = append(modelsToMigrate, modelMap[key])
 		}
 	} else {
 		for _, name := range dbModels {
@@ -43,6 +53,6 @@ func RunMigrations(dbModels ...string) error {
 			return fmt.Errorf("migration failed for %T: %w", model, err)
 		}
 	}
-	fmt.Println("Migrations completed successfully.")
+
 	return nil
 }

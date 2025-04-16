@@ -1,5 +1,5 @@
-// Package configdata provides a handler to preload static data into the database from JSON files.
-package configdata
+// Package loaddata provides a handler to preload static data into the database from JSON files.
+package loaddata
 
 import (
 	"e-commerce/database/connections"
@@ -29,19 +29,19 @@ import (
 func PreLoadDataHandler(context *gin.Context) {
 
 	fileNames := []string{
-		"product_category",
+		"parent_product_category",
+		"child_product_category",
 		"address_type",
 		"user_role",
-		"product",
 		"user",
 	}
 
 	fileNameModels := map[string]any{
-		"product_category": models.ProductCategory{},
-		"address_type":     models.AddressType{},
-		"product":          models.Product{},
-		"user_role":        models.Role{},
-		"user":             models.User{},
+		"parent_product_category": models.ProductCategory{},
+		"child_product_category":  models.ProductCategory{},
+		"address_type":            models.AddressType{},
+		"user_role":               models.Role{},
+		"user":                    models.User{},
 	}
 
 	db := connections.GetDB()
@@ -63,7 +63,7 @@ func PreLoadDataHandler(context *gin.Context) {
 		}
 
 		// Build the file location.
-		fileLocation := filepath.Join(currentDir, "utils", "config_data", fileName+".json")
+		fileLocation := filepath.Join(currentDir, "utils", "loaddata", fileName+".json")
 
 		// Open the JSON file.
 		file, err := os.Open(fileLocation) // #nosec G304

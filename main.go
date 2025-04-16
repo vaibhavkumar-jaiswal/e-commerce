@@ -36,8 +36,8 @@ import (
 	"e-commerce/middleware/requestid"
 	"e-commerce/middleware/requestlog"
 	"e-commerce/services"
-	configdata "e-commerce/utils/config_data"
 	"e-commerce/utils/helper"
+	"e-commerce/utils/loaddata"
 )
 
 func main() {
@@ -110,7 +110,7 @@ func main() {
 
 	router.Use(auth.Auth())
 
-	router.GET(auth.PublicRoute("/load-data"), configdata.PreLoadDataHandler)
+	router.GET(auth.PublicRoute("/load-data"), loaddata.PreLoadDataHandler)
 
 	router.Use(
 		ratelimiting.RateLimiter(

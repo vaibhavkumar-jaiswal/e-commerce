@@ -2,17 +2,17 @@
 package route
 
 import (
-	"e-commerce/middleware/auth"
+	productHandler "e-commerce/modules/product/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
 // ProductRoutes sets up the routes for product related operations.
 func ProductRoutes(router *gin.RouterGroup) {
-	// handler := handler.NewUserHandler()
+	handler := productHandler.NewUserHandler()
 
-	router.GET(auth.PublicRoute("/product"), func(context *gin.Context) {
-		context.JSON(200, "Product module is working")
-	})
+	{
+		router.GET("/product", handler.GetProducts)
+	}
 
 }

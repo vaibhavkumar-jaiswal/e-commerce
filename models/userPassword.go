@@ -12,7 +12,7 @@ type UserPassword struct {
 	base.Model     `swaggerignore:"true"`
 	UserPasswordID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique" json:"user_password_id"`
 	Password       string    `json:"password"`
-	UserID         uuid.UUID `gorm:"not null;uniqueIndex;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user_id"`
+	UserID         uuid.UUID `gorm:"not null;uniqueIndex" json:"user_id"`
 }
 
 // TableName sets custom table name for UserPassword model

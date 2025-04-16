@@ -9,7 +9,7 @@ import (
 // AddressType defines categories for addresses (e.g., home, work, billing).
 type AddressType struct {
 	base.Model    `swaggerignore:"true"`
-	AddressTypeID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique" json:"address_type_id"`
+	AddressTypeID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();unique;primaryKey" json:"address_type_id"`
 	Name          string    `gorm:"not null" json:"name"`
 	Code          string    `gorm:"not null;unique" json:"code"`
 	Description   string    `gorm:"size:255" json:"description"`
