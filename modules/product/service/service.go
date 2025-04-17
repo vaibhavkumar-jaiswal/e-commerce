@@ -14,7 +14,8 @@ import (
 // Service defines the structure for the product service layer.
 // It contains a repository instance to interact with the database.
 type Service struct {
-	repo *repository.Repo
+	productRepo         *repository.ProductRepo
+	productCategoryRepo *repository.ProductCategoryRepo
 }
 
 // NewUserService creates and returns a new User Service instance by initializing the repository.
@@ -22,9 +23,9 @@ type Service struct {
 //
 //	*Service: A pointer to a new Service instance with its repository initialized.
 func NewUserService() *Service {
-	repo := repository.NewUserRepository()
 	return &Service{
-		repo: repo,
+		productRepo:         repository.NewProductRepository(),
+		productCategoryRepo: repository.NewProductCategoryRepository(),
 	}
 }
 
@@ -33,7 +34,7 @@ func NewUserService() *Service {
 //
 // Parameters:
 //
-//	queryParams (*models.ProductQueryParams): The query parameters for filtering products.
+//	queryParams (*dtos.ProductQueryParams): The query parameters for filtering products.
 //
 // Returns:
 //
@@ -41,11 +42,11 @@ func NewUserService() *Service {
 //	error: An error if no data is found or if any operation fails.
 func (service *Service) GetProducts(queryParams *dtos.ProductQueryParams) ([]models.ProductResponse, error) {
 
-	filter := service.repo.GetFilter()
+	filter := service.productRepo.GetFilter()
 
 	filter = helper.BuildQuery(filter, queryParams)
 
-	products, _, err := service.repo.FindAll(filter, "name", 0, 0)
+	products, _, err := service.productRepo.FindAll(filter, "name", 0, 0)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -58,4 +59,26 @@ func (service *Service) GetProducts(queryParams *dtos.ProductQueryParams) ([]mod
 	}
 
 	return models.ProductList(products).ResponseList(), nil
+}
+
+func (service *Service) AddProduct(productRequest *dtos.ProductRequest) (string, error) {
+
+	product := &models.Product{
+		Name:              productRequest.Name,
+		Description:       productRequest.Description,
+		Price:             productRequest.Price,
+		ProductCategoryID: productRequest.ProductCategoryID,
+		Stock:             productRequest.Stock,
+		ImageURL:          productRequest.ImageURL,
+	}
+
+	err := service.productRepo.Create(product)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "Product added successfully.", nil
 }

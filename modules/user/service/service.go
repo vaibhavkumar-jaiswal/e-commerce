@@ -22,7 +22,7 @@ import (
 // Service provides user management operations, including login, email verification,
 // user retrieval, registration, and update functionalities.
 type Service struct {
-	repo *repository.Repo
+	userRepo *repository.UserRepo
 }
 
 // NewUserService creates and returns a new User Service instance by initializing the repository.
@@ -30,9 +30,8 @@ type Service struct {
 //
 //	*Service: A pointer to a new Service instance with its repository initialized.
 func NewUserService() *Service {
-	repo := repository.NewUserRepository()
 	return &Service{
-		repo: repo,
+		userRepo: repository.NewUserRepository(),
 	}
 }
 
@@ -52,7 +51,7 @@ func (service *Service) Login(data dtos.Login) (any, error) {
 	condition := "users.email = ? AND user_passwords.password = ? AND users.is_verified = true"
 
 	relations := []string{"Role"}
-	userList, err := service.repo.FindAllByConditionWithJoin(relations, join, condition, data.UserName, data.Password)
+	userList, err := service.userRepo.FindAllByConditionWithJoin(relations, join, condition, data.UserName, data.Password)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -117,7 +116,7 @@ func (service *Service) GetUserByID(id string) (any, error) {
 
 	condition := "users.user_id = ? AND users.is_verified = true"
 
-	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	user, err := service.userRepo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -149,7 +148,7 @@ func (service *Service) GetUserByID(id string) (any, error) {
 func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	unverifiedUserQuery := "users.email = ?"
 
-	user, err := service.repo.GetByCondition(unverifiedUserQuery, email)
+	user, err := service.userRepo.GetByCondition(unverifiedUserQuery, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -182,7 +181,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 
 	condition := "users.email = ? AND users.is_verified = false"
 
-	err = service.repo.UpdateSpecificRecord(record, condition, email)
+	err = service.userRepo.PartialUpdate(record, condition, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -193,7 +192,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 	relations := []string{"UserPassword", "Role"}
 	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 
-	users, err := service.repo.FindAllByConditionWithJoin(
+	users, err := service.userRepo.FindAllByConditionWithJoin(
 		relations,
 		join,
 		"users.email = ? AND users.is_verified = true",
@@ -247,7 +246,7 @@ func (service *Service) VerifyEmail(email, otp string) (any, error) {
 func (service *Service) ResendVerificationCode(email string) (any, error) {
 	condition := "users.email = ?"
 
-	user, err := service.repo.GetByCondition(condition, email)
+	user, err := service.userRepo.GetByCondition(condition, email)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -296,11 +295,11 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 func (service *Service) GetUsers(queryParams *dtos.UserQueryParams) ([]models.UserResponse, error) {
 	queryParams.IsVerified = true
 
-	filter := service.repo.GetFilter()
+	filter := service.userRepo.GetFilter()
 
 	filter = helper.BuildQuery(filter, queryParams)
 
-	users, _, err := service.repo.FindAll(filter, "user_id", 0, 0)
+	users, _, err := service.userRepo.FindAll(filter, "user_id", 0, 0)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return nil, fmt.Errorf(pgErr.Detail)
@@ -338,7 +337,7 @@ func (service *Service) AddUser(request dtos.UserRequest) (string, error) {
 			Password: helper.GeneratePassword(),
 		},
 	}
-	err := service.repo.Create(&user)
+	err := service.userRepo.Create(&user)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -385,7 +384,7 @@ func (service *Service) UpdateUser(id string, request dtos.UpdateUserRequest) (s
 
 	condition := "users.user_id = ? AND users.is_verified = true"
 
-	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	user, err := service.userRepo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -403,7 +402,7 @@ func (service *Service) UpdateUser(id string, request dtos.UpdateUserRequest) (s
 	user.Phone = request.Phone
 	user.RoleID = request.RoleID
 
-	err = service.repo.Update(user)
+	err = service.userRepo.Update(user)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -433,7 +432,7 @@ func (service *Service) PartialUpdateUser(id string, request dtos.PatchUserReque
 
 	condition := "users.user_id = ? AND users.is_verified = true"
 
-	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	user, err := service.userRepo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -466,7 +465,7 @@ func (service *Service) PartialUpdateUser(id string, request dtos.PatchUserReque
 		patchData["role_id"] = request.RoleID
 	}
 
-	err = service.repo.UpdateSpecificRecord(patchData, condition, parsedUUID)
+	err = service.userRepo.PartialUpdate(patchData, condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -495,7 +494,7 @@ func (service *Service) DeleteUser(id string) (string, error) {
 
 	condition := "users.user_id = ? AND users.is_verified = true"
 
-	user, err := service.repo.GetByCondition(condition, parsedUUID)
+	user, err := service.userRepo.GetByCondition(condition, parsedUUID)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)
@@ -507,7 +506,7 @@ func (service *Service) DeleteUser(id string) (string, error) {
 		return "", fmt.Errorf("no user found with id = %s", parsedUUID)
 	}
 
-	err = service.repo.Delete(user, true)
+	err = service.userRepo.Delete(user, true)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			return "", fmt.Errorf(pgErr.Detail)

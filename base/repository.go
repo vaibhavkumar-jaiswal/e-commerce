@@ -116,14 +116,14 @@ func (base *Repository[T]) Update(entity *T) error {
 	return base.DB.Save(entity).Error
 }
 
-// UpdateSpecificRecord updates specific fields of records matching the condition.
+// PartialUpdate updates specific fields of records matching the condition.
 // Parameters:
 // - record (map[string]any): Map of fields and their new values.
 // - condition (string): SQL condition string.
 // - args (...any): Arguments for the condition.
 // Returns:
 // - error: Error if any occurred during the update.
-func (base *Repository[T]) UpdateSpecificRecord(record map[string]any, condition string, args ...any) error {
+func (base *Repository[T]) PartialUpdate(record map[string]any, condition string, args ...any) error {
 	return base.DB.Model(new(T)).Where(condition, args...).Updates(record).Error
 }
 
