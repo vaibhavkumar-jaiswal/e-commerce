@@ -45,16 +45,6 @@ func (repo UserRepo) Create(user *models.User) error {
 	return repo.base.Create(user)
 }
 
-// Get retrieves a user by their ID.
-// Parameters:
-// - id (uint): The user ID.
-// Returns:
-// - *models.User: Pointer to the retrieved user, or nil if not found.
-// - error: Error if any occurred during the query.
-func (repo UserRepo) Get(id uint) (*models.User, error) {
-	return repo.base.Get(id)
-}
-
 // GetByCondition retrieves a single user matching a condition.
 // Parameters:
 // - condition (any): The SQL WHERE condition.
@@ -78,35 +68,6 @@ func (repo UserRepo) GetByCondition(condition any, args ...any) (*models.User, e
 // - error: Error if any occurred during the query.
 func (repo UserRepo) FindAll(filters *gorm.DB, orderBy string, limit, offset int) ([]models.User, int64, error) {
 	return repo.base.FindAll(filters, orderBy, limit, offset)
-}
-
-// FindAllByConditionWithJoin retrieves users with JOINs and WHERE condition.
-// Parameters:
-// - relations ([]string): List of relations to preload (e.g., "Orders", "Profile").
-// - join (string): SQL JOIN clause.
-// - condition (any): WHERE clause.
-// - args (...any): Arguments for the condition.
-// Returns:
-// - []models.User: Slice of users.
-// - error: Error if any occurred during the query.
-func (repo UserRepo) FindAllByConditionWithJoin(
-	relations []string,
-	join string,
-	condition any,
-	args ...any,
-) ([]models.User, error) {
-	return repo.base.FindAllByConditionWithJoin(relations, join, condition, args...)
-}
-
-// FindAllByCondition retrieves users matching the given condition.
-// Parameters:
-// - condition (any): WHERE clause.
-// - args (...any): Arguments for the condition.
-// Returns:
-// - []models.User: Slice of matched users.
-// - error: Error if any occurred during the query.
-func (repo UserRepo) FindAllByCondition(condition any, args ...any) ([]models.User, error) {
-	return repo.base.FindAllByCondition(condition, args...)
 }
 
 // PartialUpdate updates specific fields of one or more user records.

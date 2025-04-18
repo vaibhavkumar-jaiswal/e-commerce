@@ -148,6 +148,47 @@
                 }
             }
         },
+        "/product/{product_id}": {
+            "get": {
+                "description": "Retrieves a product's details by their unique ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get Product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product data fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or product not found",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/products": {
             "get": {
                 "description": "Retrieve a list of products with optional filters like category, sorting,\nand pagination",
@@ -198,7 +239,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ProductResponse"
+                                "$ref": "#/definitions/models.ProductResponse"
                             }
                         }
                     },
@@ -724,35 +765,6 @@
                 }
             }
         },
-        "ProductResponse": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/models.ProductCategory"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "imageURL": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "productCategoryID": {
-                    "type": "string"
-                },
-                "product_id": {
-                    "type": "string"
-                },
-                "stock": {
-                    "type": "integer"
-                }
-            }
-        },
         "ResendEmailRequest": {
             "type": "object",
             "required": [
@@ -924,6 +936,35 @@
                 },
                 "product_category_id": {
                     "type": "string"
+                }
+            }
+        },
+        "models.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/ProductCategory"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "imageURL": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "productCategoryID": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "stock": {
+                    "type": "integer"
                 }
             }
         },

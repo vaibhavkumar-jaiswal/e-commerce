@@ -38,7 +38,7 @@ type ProductResponse struct {
 	Category          ProductCategory `gorm:"foreignKey:ProductCategoryID;references:ProductCategoryID"`
 	Stock             int             `gorm:"not null"`
 	ImageURL          string          `gorm:"size:255"`
-} //@name ProductResponse
+}
 
 // ResponseObj formats a single product to ProductResponse
 func (product Product) ResponseObj() ProductResponse {

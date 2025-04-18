@@ -8,6 +8,7 @@ import (
 	"e-commerce/utils/helper"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -61,6 +62,40 @@ func (service *Service) GetProducts(queryParams *dtos.ProductQueryParams) ([]mod
 	return models.ProductList(products).ResponseList(), nil
 }
 
+// GetProductByID retrieves a product by their unique identifier (UUID).
+//
+// Parameters:
+//
+//	id (string): The UUID of the product in string format.
+//
+// Returns:
+//
+//	any: Typically a product response object if found.
+//	error: An error if the product is not found or if an error occurred during retrieval.
+func (service *Service) GetProductByID(id string) (any, error) {
+	parsedUUID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid id format, expects uuid")
+	}
+
+	product, err := service.productRepo.Get(parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return nil, fmt.Errorf(pgErr.Detail)
+		}
+		return nil, err
+	}
+
+	if product == nil {
+		return nil, fmt.Errorf("no product found with id = %s", parsedUUID)
+	}
+
+	return product.ResponseObj(), nil
+}
+
+// AddProduct adds a new product to the database.
+// It takes a product request object, creates a new product model,
+// and saves it to the database.
 func (service *Service) AddProduct(productRequest *dtos.ProductRequest) (string, error) {
 
 	product := &models.Product{

@@ -30,7 +30,6 @@ import (
 	"e-commerce/config"
 	"e-commerce/database/connections"
 	_ "e-commerce/docs"
-	"e-commerce/middleware/auth"
 	"e-commerce/middleware/compression"
 	"e-commerce/middleware/ratelimiting"
 	"e-commerce/middleware/requestid"
@@ -108,9 +107,7 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "/api-docs/index.html")
 	})
 
-	router.Use(auth.Auth())
-
-	router.GET(auth.PublicRoute("/load-data"), loaddata.PreLoadDataHandler)
+	router.GET("/load-data", loaddata.PreLoadDataHandler)
 
 	router.Use(
 		ratelimiting.RateLimiter(

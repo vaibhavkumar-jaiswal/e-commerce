@@ -7,6 +7,7 @@ import (
 	"e-commerce/base"
 	"e-commerce/models"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ type ProductRepo struct {
 	base base.Repository[models.Product]
 }
 
-// NewUserRepository creates a new instance of the Product repository.
+// NewProductRepository creates a new instance of the Product repository.
 // Returns:
 // - *Repo: Pointer to a new Repo with injected DB and Redis client.
 func NewProductRepository() *ProductRepo {
@@ -42,7 +43,7 @@ func (productRepo ProductRepo) GetFilter() *gorm.DB {
 // Returns:
 // - *models.Product: Pointer to the retrieved product, or nil if not found.
 // - error: Error if any occurred during the query.
-func (productRepo ProductRepo) Get(id uint) (*models.Product, error) {
+func (productRepo ProductRepo) Get(id uuid.UUID) (*models.Product, error) {
 	return productRepo.base.Get(id)
 }
 
@@ -52,18 +53,46 @@ func (productRepo ProductRepo) FindAll(filters *gorm.DB, orderBy string, limit i
 	return productRepo.base.FindAll(filters, orderBy, limit, offset)
 }
 
+// Create inserts a new product record into the database.
+// Parameters:
+// - product (*models.Product): Pointer to the product to be created.
+// Returns:
+// - error: Error if any occurred during creation.
 func (productRepo ProductRepo) Create(product *models.Product) error {
 	return productRepo.base.Create(product)
 }
 
+// Update updates an existing product record in the database.
+// Parameters:
+// - product (*models.Product): Pointer to the product to be updated.
+// Returns:
+// - error: Error if any occurred during the update.
+// Note: The product ID must be set before calling this method.
 func (productRepo ProductRepo) Update(product *models.Product) error {
 	return productRepo.base.Update(product)
 }
 
+// PartialUpdate updates specific fields of one or more product records.
+// Parameters:
+// - record (map[string]any): Fields to update with their values.
+// - condition (string): WHERE condition string.
+// - args (...any): Arguments for the condition.
+// Returns:
+// - error: Error if any occurred during the update.
+// Note: The condition should be a valid SQL WHERE clause.
 func (productRepo ProductRepo) PartialUpdate(record map[string]any, condition string, args ...any) error {
 	return productRepo.base.PartialUpdate(record, condition, args...)
 }
 
+// Delete removes a product record from the database.
+// Parameters:
+// - product (*models.Product): Pointer to the product to be deleted.
+// - isSoftDelete (bool): If true, performs a soft delete; otherwise, a hard delete.
+// Returns:
+// - error: Error if any occurred during the deletion.
+// Note: The product ID must be set before calling this method.
+// Note: Soft delete marks the record as deleted without removing it from the database.
+// Hard delete removes the record from the database permanently.
 func (productRepo ProductRepo) Delete(product *models.Product, isSoftDelete bool) error {
 	return productRepo.base.Delete(product, isSoftDelete)
 }
@@ -76,7 +105,7 @@ type ProductCategoryRepo struct {
 	base base.Repository[models.ProductCategory]
 }
 
-// NewUserRepository creates a new instance of the Product repository.
+// NewProductCategoryRepository creates a new instance of the Product repository.
 // Returns:
 // - *Repo: Pointer to a new Repo with injected DB and Redis client.
 func NewProductCategoryRepository() *ProductCategoryRepo {
@@ -98,6 +127,11 @@ func (productCategoryRepo ProductCategoryRepo) GetFilter() *gorm.DB {
 
 // FindAll retrieves all product categories from the database.
 // It accepts filters, orderBy, limit, and offset parameters for pagination.
-func (productCategoryRepo *ProductCategoryRepo) FindAll(filters *gorm.DB, orderBy string, limit int, offset int) ([]models.ProductCategory, int64, error) {
+func (productCategoryRepo *ProductCategoryRepo) FindAll(
+	filters *gorm.DB,
+	orderBy string,
+	limit int,
+	offset int,
+) ([]models.ProductCategory, int64, error) {
 	return productCategoryRepo.base.FindAll(filters, orderBy, limit, offset)
 }

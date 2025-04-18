@@ -5,6 +5,7 @@ package base
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -31,7 +32,7 @@ func NewRepository[T any](db *gorm.DB, redisClient *redis.Client) *Repository[T]
 // Returns:
 // - *T: Pointer to the retrieved entity (or nil if not found).
 // - error: Error if any occurred during the DB operation.
-func (base *Repository[T]) Get(id uint) (*T, error) {
+func (base *Repository[T]) Get(id uuid.UUID) (*T, error) {
 	var entity T
 	if err := base.DB.First(&entity, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

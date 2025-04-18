@@ -2,6 +2,7 @@
 package handler
 
 import (
+	_ "e-commerce/models" // for swagger documentation
 	"e-commerce/modules/product/dtos"
 	"e-commerce/modules/product/service"
 	_ "e-commerce/shared" // for swagger documentation
@@ -58,4 +59,31 @@ func (handler *Handler) GetProducts(context *gin.Context) {
 	}
 
 	helper.ResponseWriter(context, http.StatusOK, products)
+}
+
+// GetProductByID godoc
+//
+//	@Summary		Get Product by ID
+//	@Description	Retrieves a product's details by their unique ID.
+//	@Tags			Products
+//	@Produce		json
+//	@Param			product_id	path		string						true	"Product ID"
+//	@Success		200			{object}	models.ProductResponse		"Product data fetched successfully"
+//	@Failure		400			{object}	shared.BadRequestError		"Invalid ID or product not found"
+//	@Failure		500			{object}	shared.InternalServerError	"Internal server error"
+//	@Router			/product/{product_id} [get]
+func (handler *Handler) GetProductByID(context *gin.Context) {
+
+	id := context.Param("id")
+	if id == "" {
+		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID format.")
+		return
+	}
+	user, err := handler.service.GetProductByID(id)
+	if err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseWriter(context, http.StatusOK, user)
 }

@@ -16,7 +16,7 @@ type ProductCategory struct {
 	Name              string            `gorm:"size:100;uniqueIndex;not null"`
 	Code              string            `gorm:"not null;unique" json:"code"`
 	Description       string            `gorm:"type:text"`
-}
+} // @name ProductCategory
 
 // TableName sets custom table name for ProductCategory model
 func (ProductCategory) TableName() string {

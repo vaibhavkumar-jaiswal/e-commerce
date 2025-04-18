@@ -60,25 +60,6 @@ definitions:
     - password
     - username
     type: object
-  ProductResponse:
-    properties:
-      category:
-        $ref: '#/definitions/models.ProductCategory'
-      description:
-        type: string
-      imageURL:
-        type: string
-      name:
-        type: string
-      price:
-        type: number
-      product_id:
-        type: string
-      productCategoryID:
-        type: string
-      stock:
-        type: integer
-    type: object
   ResendEmailRequest:
     properties:
       email:
@@ -199,6 +180,25 @@ definitions:
         type: string
       product_category_id:
         type: string
+    type: object
+  models.ProductResponse:
+    properties:
+      category:
+        $ref: '#/definitions/ProductCategory'
+      description:
+        type: string
+      imageURL:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      productCategoryID:
+        type: string
+      stock:
+        type: integer
     type: object
   models.Role:
     properties:
@@ -346,6 +346,33 @@ paths:
       summary: Logout user
       tags:
       - Authentication
+  /product/{product_id}:
+    get:
+      description: Retrieves a product's details by their unique ID.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product data fetched successfully
+          schema:
+            $ref: '#/definitions/models.ProductResponse'
+        "400":
+          description: Invalid ID or product not found
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: Get Product by ID
+      tags:
+      - Products
   /products:
     get:
       consumes:
@@ -382,7 +409,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/ProductResponse'
+              $ref: '#/definitions/models.ProductResponse'
             type: array
         "400":
           description: Invalid query parameters

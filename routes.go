@@ -2,8 +2,9 @@ package main
 
 import (
 	"e-commerce/middleware/auth"
-	product "e-commerce/modules/product/route"
-	user "e-commerce/modules/user/route"
+	authRoute "e-commerce/modules/auth/route"
+	productRoute "e-commerce/modules/product/route"
+	userRoute "e-commerce/modules/user/route"
 	"e-commerce/utils/constants"
 	"e-commerce/utils/loaddata"
 	"os"
@@ -14,7 +15,9 @@ import (
 // registerRoute registers all routes for the application
 func registerRoute(router *gin.Engine) {
 	v1Router := router.Group(os.Getenv(constants.BasePath))
+	authRoute.AuthRoutes(v1Router)
+	v1Router.Use(auth.Auth())
 	v1Router.GET(auth.PublicRoute("/load-data"), loaddata.PreLoadDataHandler)
-	user.UserManagementRoutes(v1Router)
-	product.ProductRoutes(v1Router)
+	userRoute.UserManagementRoutes(v1Router)
+	productRoute.ProductRoutes(v1Router)
 }
