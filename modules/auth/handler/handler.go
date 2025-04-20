@@ -31,15 +31,18 @@ func NewUserHandler() *Handler {
 //
 //	@Summary		User Login
 //	@Description	Authenticates a user using email and password and returns a JWT token.
-//	@Tags			Authentication
-//	@Security		BearerAuth
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//
 //	@Param			loginData	body		dtos.Login									true	"User login credentials"
+//
 //	@Success		200			{object}	shared.SuccessResponse[dtos.LoginResponse]	"Authenticated successfully with JWT token"
+//
 //	@Failure		400			{object}	shared.BadRequestError						"Invalid or malformed request body"
 //	@Failure		401			{object}	shared.UnauthorizedError					"Invalid credentials or unauthorized access"
 //	@Failure		500			{object}	shared.InternalServerError					"Unexpected server error"
+//
 //	@Router			/auth/login [post]
 func (handler *Handler) Login(context *gin.Context) {
 
@@ -62,14 +65,16 @@ func (handler *Handler) Login(context *gin.Context) {
 //
 //	@Summary		Logout user
 //	@Description	Invalidate the user's access token
-//	@Tags			Authentication
-//	@Security		BearerAuth
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//
 //	@Success		200	{object}	shared.SuccessResponse[string]	"Successfully logged out"
+//
 //	@Failure		400	{object}	shared.BadRequestError			"Invalid or malformed request body"
 //	@Failure		401	{object}	shared.UnauthorizedError		"Invalid credentials or unauthorized access"
 //	@Failure		500	{object}	shared.InternalServerError		"Unexpected server error"
+//
 //	@Router			/logout [post]
 func (handler *Handler) Logout(context *gin.Context) {
 
@@ -88,14 +93,18 @@ func (handler *Handler) Logout(context *gin.Context) {
 //
 //	@Summary		Verify Email with OTP
 //	@Description	Verifies a user's email address using an OTP sent to their email.
-//	@Tags			User Registration
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//
 //	@Param			request	body		dtos.EmailOTPRequest		true	"Email and OTP"
+//
 //	@Success		200		{object}	models.User					"User verified successfully"
+//
 //	@Failure		400		{object}	shared.BadRequestError		"Missing or invalid OTP/email"
 //	@Failure		500		{object}	shared.InternalServerError	"Internal server error"
-//	@Router			/user/verify-email [post]
+//
+//	@Router			/auth/verify-email [post]
 func (handler *Handler) VerifyEmail(context *gin.Context) {
 
 	request, validationErr := helper.BindAndValidate[dtos.EmailOTPRequest](context)
@@ -117,14 +126,18 @@ func (handler *Handler) VerifyEmail(context *gin.Context) {
 //
 //	@Summary		Resend Verification Code
 //	@Description	Resends a verification code to the user's email address.
-//	@Tags			User Registration
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
+//
 //	@Param			request	body		dtos.ResendEmailRequest		true	"Email for which to resend OTP"
-//	@Success		200		{object}	models.User					"OTP sent successfully"
+//
+//	@Success		200		{object}	dtos.EmailResendResponse	"OTP sent successfully"
+//
 //	@Failure		400		{object}	shared.BadRequestError		"Missing or invalid email"
 //	@Failure		500		{object}	shared.InternalServerError	"Internal server error"
-//	@Router			/user/resend-verification [post]
+//
+//	@Router			/auth/resend-verification [post]
 func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 
 	request, validationErr := helper.BindAndValidate[dtos.EmailOTPRequest](context)
@@ -146,18 +159,22 @@ func (handler *Handler) ResendVerificationCode(context *gin.Context) {
 //
 //	@Summary		Register a New User
 //	@Description	Registers a new user account by accepting valid email and other details.
-//	@Tags			User Registration
+//	@Tags			Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			userDetails	body		dtos.UserRequest			true	"User registration payload"
-//	@Success		200			{object}	dtos.UserRegisterSuccess	"Registration successful"
-//	@Failure		400			{object}	shared.BadRequestError		"Invalid input or missing required fields"
-//	@Failure		401			{object}	shared.UnauthorizedError	"Unauthorized access attempt"
-//	@Failure		500			{object}	shared.InternalServerError	"Unexpected server error"
-//	@Router			/user/register [post]
+//
+//	@Param			request	body		dtos.AddUserRequest			true	"User registration payload"
+//
+//	@Success		200		{object}	dtos.UserRegisterSuccess	"Registration successful"
+//
+//	@Failure		400		{object}	shared.BadRequestError		"Invalid input or missing required fields"
+//	@Failure		401		{object}	shared.UnauthorizedError	"Unauthorized access attempt"
+//	@Failure		500		{object}	shared.InternalServerError	"Unexpected server error"
+//
+//	@Router			/auth/register [post]
 func (handler *Handler) AddUser(context *gin.Context) {
 
-	request, validationErr := helper.BindAndValidate[dtos.UserRequest](context)
+	request, validationErr := helper.BindAndValidate[dtos.AddUserRequest](context)
 	if validationErr != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
 		return

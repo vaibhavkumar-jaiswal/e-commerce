@@ -66,16 +66,16 @@ func (service *Service) GetProducts(queryParams *dtos.ProductQueryParams) ([]mod
 //
 // Parameters:
 //
-//	id (string): The UUID of the product in string format.
+//	productID (string): The UUID of the product in string format.
 //
 // Returns:
 //
 //	any: Typically a product response object if found.
 //	error: An error if the product is not found or if an error occurred during retrieval.
-func (service *Service) GetProductByID(id string) (any, error) {
-	parsedUUID, err := uuid.Parse(id)
+func (service *Service) GetProductByID(productID string) (any, error) {
+	parsedUUID, err := uuid.Parse(productID)
 	if err != nil {
-		return nil, fmt.Errorf("invalid id format, expects uuid")
+		return nil, fmt.Errorf("invalid productID format, expects uuid")
 	}
 
 	product, err := service.productRepo.Get(parsedUUID)
@@ -87,7 +87,7 @@ func (service *Service) GetProductByID(id string) (any, error) {
 	}
 
 	if product == nil {
-		return nil, fmt.Errorf("no product found with id = %s", parsedUUID)
+		return nil, fmt.Errorf("no product found with productID = %s", parsedUUID)
 	}
 
 	return product.ResponseObj(), nil
@@ -116,4 +116,127 @@ func (service *Service) AddProduct(productRequest *dtos.ProductRequest) (string,
 	}
 
 	return "Product added successfully.", nil
+}
+
+// UpdateProduct updates an existing product in the database.
+func (service *Service) UpdateProduct(productID string, request dtos.UpdateProductRequest) (string, error) {
+	parsedUUID, err := uuid.Parse(productID)
+	if err != nil {
+		return "", fmt.Errorf("invalid productID format, expects uuid")
+	}
+
+	product, err := service.productRepo.Get(parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	if product == nil {
+		return "", fmt.Errorf("no product found with productID = %s", parsedUUID)
+	}
+
+	product.Name = request.Name
+	product.Description = request.Description
+	product.Price = request.Price
+	product.ProductCategoryID = request.ProductCategoryID
+	product.Stock = request.Stock
+	product.ImageURL = request.ImageURL
+
+	err = service.productRepo.Update(product)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "Product upadated successfully.", nil
+}
+
+// PartialUpdateProduct updates specific fields of a product based on the provided patch request.
+func (service *Service) PartialUpdateProduct(productID string, request dtos.PatchProductRequest) (string, error) {
+	parsedUUID, err := uuid.Parse(productID)
+	if err != nil {
+		return "", fmt.Errorf("invalid productID format, expects uuid")
+	}
+
+	product, err := service.productRepo.Get(parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	if product == nil {
+		return "", fmt.Errorf("no product found with productID = %s", parsedUUID)
+	}
+
+	patchData := make(map[string]any)
+
+	if request.Name != nil {
+		patchData["name"] = request.Name
+	}
+
+	if request.Description != nil {
+		patchData["description"] = request.Description
+	}
+
+	if request.Price != nil {
+		patchData["price"] = request.Price
+	}
+
+	if request.ProductCategoryID != nil {
+		patchData["product_category_id"] = request.ProductCategoryID
+	}
+
+	if request.Stock != nil {
+		patchData["stock"] = request.Stock
+	}
+
+	if request.ImageURL != nil {
+		patchData["imageurl"] = request.ImageURL
+	}
+
+	err = service.productRepo.PartialUpdate(patchData, "products.product_id = ?", parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "Product upadated successfully.", nil
+}
+
+// DeleteProduct deletes a product from the database.
+func (service *Service) DeleteProduct(productID string) (string, error) {
+	parsedUUID, err := uuid.Parse(productID)
+	if err != nil {
+		return "", fmt.Errorf("invalid productID format, expects uuid")
+	}
+
+	product, err := service.productRepo.Get(parsedUUID)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	if product == nil {
+		return "", fmt.Errorf("no product found with productID = %s", parsedUUID)
+	}
+
+	err = service.productRepo.Delete(product, true)
+	if err != nil {
+		if pgErr, ok := err.(*pq.Error); ok {
+			return "", fmt.Errorf(pgErr.Detail)
+		}
+		return "", err
+	}
+
+	return "Product successfully deleted.", nil
 }

@@ -258,13 +258,13 @@ func (service *Service) ResendVerificationCode(email string) (any, error) {
 //
 //	string: A success message instructing the user to verify their email.
 //	error: An error if the creation or OTP email sending fails.
-func (service *Service) AddUser(request dtos.UserRequest) (string, error) {
+func (service *Service) AddUser(request dtos.AddUserRequest) (string, error) {
 	user := models.User{
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
-		Email:     request.Email,
-		Phone:     request.Phone,
-		RoleID:    request.RoleID,
+		// Email:     request.Email,
+		// Phone:     request.Phone,
+		RoleID: request.RoleID,
 		UserPassword: models.UserPassword{
 			Password: helper.GeneratePassword(),
 		},

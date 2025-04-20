@@ -1,14 +1,22 @@
 //	@title			E-Commerce API
 //	@version		1.0
-//	@description	This is the API documentation for E-Commerce
-//	@host			localhost:8080
-//	@BasePath		/
-//	@schemes		http
+//	@description	API for managing products and orders.
 
-// @contact.name	Vaibhav Jaiswal
-// @contact.email	vaibhav.jaiswal@gmail.com
-// @license.name	MIT
-// @license.url	https://opensource.org/licenses/MIT
+//	@contact.name	API Support
+//	@contact.email	jaiswal.vaibhavkumar45@gmail.com
+
+//	@license.name	MIT
+//	@license.url	https://opensource.org/licenses/MIT
+
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Type "Bearer" followed by a space and JWT token.
+
+// Package main
 package main
 
 import (

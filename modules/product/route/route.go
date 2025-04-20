@@ -11,8 +11,19 @@ import (
 func ProductRoutes(router *gin.RouterGroup) {
 	handler := productHandler.NewUserHandler()
 
+	product := router.Group("/product")
 	{
-		router.GET("/product", handler.GetProducts)
+		product.GET("", handler.GetProducts)
+
+		product.GET("/:product_id", handler.GetProductByID)
+
+		product.POST("", handler.AddProduct)
+
+		product.PUT("/:product_id", handler.UpdateProduct)
+
+		product.PATCH("/:product_id", handler.PartialUpdateProduct)
+
+		product.DELETE("/:product_id", handler.DeleteProduct)
 	}
 
 }

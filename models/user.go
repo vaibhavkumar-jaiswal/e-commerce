@@ -3,6 +3,7 @@ package models
 
 import (
 	"e-commerce/base"
+	"e-commerce/utils/constants"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -26,6 +27,11 @@ type User struct {
 // TableName sets custom table name for User model
 func (User) TableName() string {
 	return "users"
+}
+
+// IsAdmin sets custom table name for User model
+func (user User) IsAdmin() bool {
+	return user.Role.Code == constants.AdminRoleCode
 }
 
 // UserList defines a slice of User

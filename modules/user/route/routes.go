@@ -10,16 +10,17 @@ import (
 // UserManagementRoutes sets up the routes for user management operations.
 func UserManagementRoutes(router *gin.RouterGroup) {
 	handler := userHandler.NewUserHandler()
+	user := router.Group("/user")
 	{
-		router.GET("/user", handler.GetUsers)
+		user.GET("", handler.GetUsers)
 
-		router.GET("/user/:id", handler.GetUserByID)
+		user.GET("/:user_id", handler.GetUserByID)
 
-		router.PUT("/user/:id", handler.UpdateUser)
+		user.PUT("/:user_id", handler.UpdateUser)
 
-		router.PATCH("/user/:id", handler.PartialUpdateUser)
+		user.PATCH("/:user_id", handler.PartialUpdateUser)
 
-		router.DELETE("/user/:id", handler.DeleteUser)
+		user.DELETE("/:user_id", handler.DeleteUser)
 	}
 
 }

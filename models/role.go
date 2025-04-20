@@ -14,6 +14,7 @@ type Role struct {
 	Name        string    `gorm:"not null" json:"name"`
 	Code        string    `gorm:"unique; not null" json:"code"`
 	Description string    `json:"description"`
+	// Permissions []Permission `gorm:"many2many:role_permissions;"`
 }
 
 // TableName sets custom table name for Role model

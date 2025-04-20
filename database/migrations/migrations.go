@@ -13,6 +13,8 @@ func RunMigrations(dbModels ...string) error {
 	db := connections.GetDB()
 
 	modelMap := map[string]any{
+		"Module":          &models.Module{},
+		"Permission":      &models.Permission{},
 		"Role":            &models.Role{},
 		"User":            &models.User{},
 		"ProductCategory": &models.ProductCategory{},
@@ -23,6 +25,8 @@ func RunMigrations(dbModels ...string) error {
 	}
 
 	modelSequence := []string{
+		"Module",
+		"Permission",
 		"Role",
 		"User",
 		"ProductCategory",

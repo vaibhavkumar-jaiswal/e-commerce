@@ -30,21 +30,26 @@ func NewUserHandler() *Handler {
 //
 //	@Summary		Get User by ID
 //	@Description	Retrieves a user's details by their unique ID.
-//	@Tags			Users
+//	@Tags			User
+//	@Security		BearerAuth
 //	@Produce		json
-//	@Param			id	path		string						true	"User ID"
-//	@Success		200	{object}	models.User					"User data fetched successfully"
-//	@Failure		400	{object}	shared.BadRequestError		"Invalid ID or user not found"
-//	@Failure		500	{object}	shared.InternalServerError	"Internal server error"
-//	@Router			/user/{id} [get]
+//
+//	@Param			user_id	path		string										true	"User ID"
+//
+//	@Success		200		{object}	shared.SuccessResponse[models.UserResponse]	"User data fetched successfully"
+//
+//	@Failure		400		{object}	shared.BadRequestError						"Invalid ID or user not found"
+//	@Failure		500		{object}	shared.InternalServerError					"Internal server error"
+//
+//	@Router			/user/{user_id} [get]
 func (handler *Handler) GetUserByID(context *gin.Context) {
 
-	id := context.Param("id")
-	if id == "" {
+	userID := context.Param("user_id")
+	if userID == "" {
 		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID format.")
 		return
 	}
-	user, err := handler.service.GetUserByID(id)
+	user, err := handler.service.GetUserByID(userID)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return
@@ -57,16 +62,21 @@ func (handler *Handler) GetUserByID(context *gin.Context) {
 //
 //	@Summary		Get Users with Filters
 //	@Description	Returns a list of users with optional filter/query parameters.
-//	@Tags			Users
+//	@Tags			User
+//	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			name		query		string						false	"Filter by name"
-//	@Param			email		query		string						false	"Filter by email"
-//	@Param			is_active	query		bool						false	"Filter by active status"
-//	@Success		200			{array}		models.User					"List of users"
-//	@Failure		400			{object}	shared.BadRequestError		"Invalid query parameters"
-//	@Failure		500			{object}	shared.InternalServerError	"Internal server error"
-//	@Router			/users [get]
+//
+//	@Param			name		query		string											false	"Filter by name"
+//	@Param			email		query		string											false	"Filter by email"
+//	@Param			is_active	query		bool											false	"Filter by active status"
+//
+//	@Success		200			{object}	shared.SuccessResponse[[]models.UserResponse]	"List of users"
+//
+//	@Failure		400			{object}	shared.BadRequestError							"Invalid query parameters"
+//	@Failure		500			{object}	shared.InternalServerError						"Internal server error"
+//
+//	@Router			/user [get]
 func (handler *Handler) GetUsers(context *gin.Context) {
 
 	queryParams := &dtos.UserQueryParams{}
@@ -85,79 +95,28 @@ func (handler *Handler) GetUsers(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, users)
 }
 
-// AddUser godoc
-//
-//	@Summary		Register a New User
-//	@Description	Registers a new user account by accepting valid email and other details.
-//	@Tags			User Registration
-//	@Accept			json
-//	@Produce		json
-//	@Param			userDetails	body		dtos.UserRequest			true	"User registration payload"
-//	@Success		200			{object}	dtos.UserRegisterSuccess	"Registration successful"
-//	@Failure		400			{object}	shared.BadRequestError		"Invalid input or missing required fields"
-//	@Failure		401			{object}	shared.UnauthorizedError	"Unauthorized access attempt"
-//	@Failure		500			{object}	shared.InternalServerError	"Unexpected server error"
-//	@Router			/user/register [post]
-func (handler *Handler) AddUser(context *gin.Context) {
-
-	request, validationErr := helper.BindAndValidate[dtos.UserRequest](context)
-	if validationErr != nil {
-		helper.ResponseWriter(context, http.StatusBadRequest, validationErr)
-		return
-	}
-
-	message, err := handler.service.AddUser(request)
-	if err != nil {
-		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	helper.ResponseWriter(context, http.StatusOK, message)
-}
-
-// its a generic function used for update and partial update
-func handleUserUpdate[T any](
-	context *gin.Context,
-	updateService func(string, T) (string, error),
-) {
-	id := context.Param("id")
-	if id == "" {
-		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
-		return
-	}
-
-	request, err := helper.BindAndValidate[T](context)
-	if err != nil {
-		helper.ResponseWriter(context, http.StatusBadRequest, err)
-		return
-	}
-
-	message, updateErr := updateService(id, request)
-	if updateErr != nil {
-		helper.ResponseWriter(context, http.StatusBadRequest, updateErr.Error())
-		return
-	}
-
-	helper.ResponseWriter(context, http.StatusOK, message)
-}
-
 // UpdateUser godoc
 //
 //	@Summary		Update user by ID
 //	@Description	Update user details based on the provided ID and request body
-//	@Tags			Users
+//	@Tags			User
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		string						true	"User ID"
-//	@Param			body	body		dtos.UpdateUserRequest		true	"Update User Request"
-//	@Success		200		{object}	dtos.UpdateUserSuccess		"User updated successfully"
-//	@Failure		400		{object}	shared.BadRequestError		"Invalid input or missing required fields"
-//	@Failure		401		{object}	shared.UnauthorizedError	"Unauthorized access attempt"
-//	@Failure		500		{object}	shared.InternalServerError	"Unexpected server error"
-//	@Router			/users/{id} [put]
+//
+//	@Param			user_id	path		string											true	"User ID"
+//	@Param			body	body		dtos.UpdateUserRequest							true	"Update User Request"
+//
+//	@Success		200		{object}	shared.SuccessResponse[dtos.UpdateUserSuccess]	"User updated successfully"
+//
+//	@Failure		400		{object}	shared.BadRequestError							"Invalid input or missing required fields"
+//	@Failure		401		{object}	shared.UnauthorizedError						"Unauthorized access attempt"
+//	@Failure		500		{object}	shared.InternalServerError						"Unexpected server error"
+//
+//	@Router			/user/{user_id} [put]
 func (handler *Handler) UpdateUser(context *gin.Context) {
-	handleUserUpdate(
+	helper.HandleUpdateAndPatch(
+		"user_id",
 		context,
 		handler.service.UpdateUser,
 	)
@@ -167,19 +126,24 @@ func (handler *Handler) UpdateUser(context *gin.Context) {
 //
 //	@Summary		Partially update user by ID
 //	@Description	Partially update user fields using PATCH request
-//	@Tags			Users
+//	@Tags			User
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		string						true	"User ID"
-//	@Param			body	body		dtos.PatchUserRequest		true	"Partial Update User Request"
-//	@Success		200		{object}	dtos.UpdateUserSuccess		"User partially updated successfully"
-//	@Failure		400		{object}	shared.BadRequestError		"Invalid input or missing required fields"
-//	@Failure		401		{object}	shared.UnauthorizedError	"Unauthorized access attempt"
-//	@Failure		500		{object}	shared.InternalServerError	"Unexpected server error"
-//	@Router			/users/{id} [patch]
+//
+//	@Param			user_id	path		string											true	"User ID"
+//	@Param			body	body		dtos.PatchUserRequest							true	"Partial Update User Request"
+//
+//	@Success		200		{object}	shared.SuccessResponse[dtos.UpdateUserSuccess]	"User partially updated successfully"
+//
+//	@Failure		400		{object}	shared.BadRequestError							"Invalid input or missing required fields"
+//	@Failure		401		{object}	shared.UnauthorizedError						"Unauthorized access attempt"
+//	@Failure		500		{object}	shared.InternalServerError						"Unexpected server error"
+//
+//	@Router			/user/{user_id} [patch]
 func (handler *Handler) PartialUpdateUser(context *gin.Context) {
-	handleUserUpdate(
+	helper.HandleUpdateAndPatch(
+		"user_id",
 		context,
 		handler.service.PartialUpdateUser,
 	)
@@ -189,23 +153,27 @@ func (handler *Handler) PartialUpdateUser(context *gin.Context) {
 //
 //	@Summary		Delete user by ID
 //	@Description	Deletes a user identified by the provided ID
-//	@Tags			Users
+//	@Tags			User
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			id	path		string						true	"User ID"
-//	@Success		200	{object}	dtos.DeleteUserSuccess		"User deleted successfully"
-//	@Failure		400	{object}	shared.BadRequestError		"Invalid input or missing required fields"
-//	@Failure		401	{object}	shared.UnauthorizedError	"Unauthorized access attempt"
-//	@Failure		500	{object}	shared.InternalServerError	"Unexpected server error"
-//	@Router			/users/{id} [delete]
+//
+//	@Param			user_id	path		string											true	"User ID"
+//
+//	@Success		200		{object}	shared.SuccessResponse[dtos.DeleteUserSuccess]	"User deleted successfully"
+//
+//	@Failure		400		{object}	shared.BadRequestError							"Invalid input or missing required fields"
+//	@Failure		401		{object}	shared.UnauthorizedError						"Unauthorized access attempt"
+//	@Failure		500		{object}	shared.InternalServerError						"Unexpected server error"
+//
+//	@Router			/user/{user_id} [delete]
 func (handler *Handler) DeleteUser(context *gin.Context) {
-	id := context.Param("id")
-	if id == "" {
+	userID := context.Param("user_id")
+	if userID == "" {
 		helper.ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
 		return
 	}
 
-	message, err := handler.service.DeleteUser(id)
+	message, err := handler.service.DeleteUser(userID)
 	if err != nil {
 		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
 		return

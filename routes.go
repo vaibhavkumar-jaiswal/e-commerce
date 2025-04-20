@@ -15,9 +15,13 @@ import (
 // registerRoute registers all routes for the application
 func registerRoute(router *gin.Engine) {
 	v1Router := router.Group(os.Getenv(constants.BasePath))
+
 	authRoute.AuthRoutes(v1Router)
+
 	v1Router.Use(auth.Auth())
 	v1Router.GET(auth.PublicRoute("/load-data"), loaddata.PreLoadDataHandler)
+
 	userRoute.UserManagementRoutes(v1Router)
+
 	productRoute.ProductRoutes(v1Router)
 }

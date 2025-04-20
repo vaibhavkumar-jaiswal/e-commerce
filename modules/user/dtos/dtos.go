@@ -8,22 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
-// UserRequest defines expected data when creating a new user
-type UserRequest struct {
-	FirstName string    `json:"first_name" validate:"required,alpha,min=2,max=20"`
-	LastName  string    `json:"last_name" validate:"required,alpha,min=2,max=20"`
-	Email     string    `json:"email" validate:"required,email"`
-	Phone     string    `json:"phone" validate:"required,numeric,len=10"`
-	RoleID    uuid.UUID `json:"role_id" validate:"required"`
-} //@name UserRequest
-
 // UpdateUserRequest defines fields required when updating an existing user
 type UpdateUserRequest struct {
-	FirstName string    `json:"first_name" validate:"required,alpha,min=2,max=50"`
-	LastName  string    `json:"last_name" validate:"required,alpha,min=2,max=50"`
-	Email     string    `json:"email" validate:"required,email"`
-	Phone     string    `json:"phone" validate:"required,numeric,len=10"`
-	RoleID    uuid.UUID `json:"role_id" validate:"required"`
+	FirstName string    `json:"first_name" example:"Vaibhavkumar" validate:"required,alpha,min=2,max=20"`
+	LastName  string    `json:"last_name" example:"Jaiswal" validate:"required,alpha,min=2,max=20"`
+	Email     string    `json:"email" example:"jaiswal.vaibhavkumar45@gmail.com" validate:"required,email"`
+	Phone     string    `json:"phone" example:"8888599949" validate:"required,numeric,len=10"`
+	RoleID    uuid.UUID `json:"role_id" example:"f47ac10b-58cc-4372-a567-0e02b2c3d479" validate:"required"`
 } //@name UserRequest
 
 // PatchUserRequest allows partial update (PATCH) of user fields

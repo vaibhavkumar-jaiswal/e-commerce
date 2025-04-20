@@ -7,8 +7,10 @@ import (
 	"e-commerce/models"
 	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
+	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,29 +19,25 @@ import (
 )
 
 var ctx = context.Background()
-var publicRouteList = map[string]bool{}
-var basePath string
+var isPathLevelRateLimit bool
 
 // RateLimiter is a middleware function that limits the number of requests a user can make
 // within a specified time window. It uses Redis to track request counts.
 func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.Client) gin.HandlerFunc {
-	basePath = os.Getenv(constants.BasePath)
+	var err error
+	isPathLevelRateLimit, err = strconv.ParseBool(os.Getenv(constants.PathLevelRateLimit))
+	if err != nil {
+		fmt.Printf("invalid boolean value for %s: %v", constants.PathLevelRateLimit, err)
+		isPathLevelRateLimit = false
+	}
 	return func(context *gin.Context) {
-		path := context.FullPath()
 
 		var key string
 
-		_, ok := publicRouteList[path]
-		if ok {
+		userDetails, exists := context.Get(constants.UserDataContextKey)
+		if !exists {
 			key = constants.RateLimitPrefix + context.ClientIP()
 		} else {
-			userDetails, exists := context.Get(constants.UserDataContextKey)
-			if !exists {
-				helper.ResponseWriter(context, http.StatusUnauthorized, "Unauthorized")
-				context.Abort()
-				return
-			}
-
 			user, ok := userDetails.(models.User)
 			if !ok {
 				helper.ResponseWriter(context, http.StatusUnauthorized, "Unauthorized")
@@ -47,8 +45,11 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 				return
 			}
 
-			// Key for Redis based on user ID
-			key = "rate_limit_" + uuid.UUID(user.UserID).String()
+			key = constants.RateLimitPrefix + uuid.UUID(user.UserID).String()
+		}
+
+		if isPathLevelRateLimit {
+			key = key + context.FullPath()
 		}
 
 		// Get the current count of requests for the user
@@ -61,7 +62,7 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 			helper.ResponseWriter(context, http.StatusInternalServerError, "Something went wrong, please try again.")
 			context.Abort()
 			return
-		} else if count >= maxRequests {
+		} else if count > maxRequests {
 			// Exceeded rate limit
 			helper.ResponseWriter(context, http.StatusTooManyRequests, "Too many requests. Please wait before trying again.")
 			context.Abort()
@@ -74,11 +75,4 @@ func RateLimiter(maxRequests int, timeWindow time.Duration, redisClient *redis.C
 		// Continue to the next middleware/handler
 		context.Next()
 	}
-}
-
-// PublicRoute registers a public route that will use different key to store rate limiting.
-// Returns the route string.
-func PublicRoute(route string) string {
-	publicRouteList[basePath+route] = true
-	return route
 }

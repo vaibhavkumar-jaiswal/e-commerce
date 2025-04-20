@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"e-commerce/middleware/ratelimiting"
 	"e-commerce/models"
 
 	"e-commerce/utils/constants"
@@ -120,6 +119,5 @@ func authenticate(context *gin.Context) {
 // PublicRoute registers a route as public, meaning it doesn't require authentication.
 func PublicRoute(route string) string {
 	publicRouteList[basePath+route] = true
-	ratelimiting.PublicRoute(route)
 	return route
 }

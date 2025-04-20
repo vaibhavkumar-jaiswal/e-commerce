@@ -1,5 +1,14 @@
-basePath: /
+basePath: /api/v1
 definitions:
+  AddProductSuccess:
+    properties:
+      data:
+        example: Product added successfully.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   BadRequestError:
     properties:
       error:
@@ -7,6 +16,15 @@ definitions:
         type: string
       success:
         example: false
+        type: boolean
+    type: object
+  DeleteProductSuccess:
+    properties:
+      data:
+        example: Product successfully deleted.
+        type: string
+      success:
+        example: true
         type: boolean
     type: object
   DeleteUserSuccess:
@@ -30,6 +48,15 @@ definitions:
     - email
     - otp
     type: object
+  EmailResendResponse:
+    properties:
+      message:
+        example: We have sent the OTP to your Email address.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   InternalServerError:
     properties:
       error:
@@ -51,14 +78,25 @@ definitions:
   LoginRequest:
     properties:
       password:
-        example: password123
+        example: "123"
         type: string
       username:
-        example: john_doe
+        example: vk@gmail.com
         type: string
     required:
     - password
     - username
+    type: object
+  LoginResponse:
+    properties:
+      expiry:
+        example: "2025-05-01T12:00:00Z"
+        type: string
+      token:
+        example: xxxxxxxxxxxxxxxxxxxxxxxxxxxx_adQssw5c
+        type: string
+      user_details:
+        $ref: '#/definitions/UserResponse'
     type: object
   ResendEmailRequest:
     properties:
@@ -68,10 +106,44 @@ definitions:
     required:
     - email
     type: object
-  Success-dtos_LoginResponse:
+  Success-DeleteUserSuccess:
     properties:
       data:
-        $ref: '#/definitions/dtos.LoginResponse'
+        $ref: '#/definitions/DeleteUserSuccess'
+      success:
+        example: true
+        type: boolean
+    type: object
+  Success-LoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/LoginResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  Success-UpdateUserSuccess:
+    properties:
+      data:
+        $ref: '#/definitions/UpdateUserSuccess'
+      success:
+        example: true
+        type: boolean
+    type: object
+  Success-UserResponse:
+    properties:
+      data:
+        $ref: '#/definitions/UserResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  Success-array_UserResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/UserResponse'
+        type: array
       success:
         example: true
         type: boolean
@@ -91,6 +163,15 @@ definitions:
         type: string
       success:
         example: false
+        type: boolean
+    type: object
+  UpdateProductSuccess:
+    properties:
+      data:
+        example: Product upadated successfully.
+        type: string
+      success:
+        example: true
         type: boolean
     type: object
   UpdateUserSuccess:
@@ -153,16 +234,60 @@ definitions:
         example: 123e4567-e89b-12d3-a456-426614174000
         type: string
     type: object
-  dtos.LoginResponse:
+  dtos.PatchProductRequest:
     properties:
-      expiry:
-        example: "2025-05-01T12:00:00Z"
+      description:
+        example: Updated description
+        maxLength: 500
+        minLength: 2
         type: string
-      token:
-        example: xxxxxxxxxxxxxxxxxxxxxxxxxxxx_adQssw5c
+      imageurl:
+        example: https://example.com/image.jpg
         type: string
-      user_details:
-        $ref: '#/definitions/UserResponse'
+      name:
+        example: iPhone 14 Pro
+        maxLength: 50
+        minLength: 2
+        type: string
+      price:
+        example: 1099.99
+        type: number
+      product_category_id:
+        example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        type: string
+      stock:
+        example: 50
+        type: integer
+    type: object
+  dtos.ProductRequest:
+    properties:
+      description:
+        example: Latest Apple smartphone
+        maxLength: 500
+        minLength: 2
+        type: string
+      imageurl:
+        example: https://example.com/image.jpg
+        type: string
+      name:
+        example: iPhone 14
+        maxLength: 50
+        minLength: 2
+        type: string
+      price:
+        example: 999.99
+        type: number
+      product_category_id:
+        example: f47ac10b-58cc-4372-a567-0e02b2c3d479
+        type: string
+      stock:
+        example: 100
+        type: integer
+    required:
+    - name
+    - price
+    - product_category_id
+    - stock
     type: object
   models.ProductCategory:
     properties:
@@ -254,9 +379,9 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: vaibhav.jaiswal@gmail.com
-    name: Vaibhav Jaiswal
-  description: This is the API documentation for E-Commerce
+    email: jaiswal.vaibhavkumar45@gmail.com
+    name: API Support
+  description: API for managing products and orders.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -282,7 +407,7 @@ paths:
         "200":
           description: Authenticated successfully with JWT token
           schema:
-            $ref: '#/definitions/Success-dtos_LoginResponse'
+            $ref: '#/definitions/Success-LoginResponse'
         "400":
           description: Invalid or malformed request body
           schema:
@@ -295,11 +420,104 @@ paths:
           description: Unexpected server error
           schema:
             $ref: '#/definitions/InternalServerError'
-      security:
-      - BearerAuth: []
       summary: User Login
       tags:
-      - Authentication
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user account by accepting valid email and other
+        details.
+      parameters:
+      - description: User registration payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registration successful
+          schema:
+            $ref: '#/definitions/UserRegisterSuccess'
+        "400":
+          description: Invalid input or missing required fields
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "500":
+          description: Unexpected server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: Register a New User
+      tags:
+      - Auth
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Resends a verification code to the user's email address.
+      parameters:
+      - description: Email for which to resend OTP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ResendEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP sent successfully
+          schema:
+            $ref: '#/definitions/EmailResendResponse'
+        "400":
+          description: Missing or invalid email
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: Resend Verification Code
+      tags:
+      - Auth
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Verifies a user's email address using an OTP sent to their email.
+      parameters:
+      - description: Email and OTP
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/EmailOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User verified successfully
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Missing or invalid OTP/email
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: Verify Email with OTP
+      tags:
+      - Auth
   /load-data:
     get:
       description: Loads static reference data into the database from JSON files.
@@ -341,134 +559,35 @@ paths:
           description: Unexpected server error
           schema:
             $ref: '#/definitions/InternalServerError'
-      security:
-      - BearerAuth: []
       summary: Logout user
       tags:
-      - Authentication
-  /product/{product_id}:
-    get:
-      description: Retrieves a product's details by their unique ID.
-      parameters:
-      - description: Product ID
-        in: path
-        name: product_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Product data fetched successfully
-          schema:
-            $ref: '#/definitions/models.ProductResponse'
-        "400":
-          description: Invalid ID or product not found
-          schema:
-            $ref: '#/definitions/BadRequestError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/InternalServerError'
-      summary: Get Product by ID
-      tags:
-      - Products
-  /products:
+      - Auth
+  /product:
     get:
       consumes:
       - application/json
-      description: |-
-        Retrieve a list of products with optional filters like category, sorting,
-        and pagination
+      description: Retrieves a list of products based on optional filters such as
+        name, price, product category ID.
       parameters:
-      - default: 1
-        description: Page number
+      - description: Filter by product name (partial match)
         in: query
-        minimum: 1
-        name: page
-        type: integer
-      - default: 10
-        description: Number of items per page
+        name: name
+        type: string
+      - description: Filter by product price
         in: query
-        maximum: 100
-        minimum: 1
-        name: page_size
-        type: integer
-      - description: Product Category filter
+        name: price
+        type: number
+      - description: Filter by Product Category ID (UUID)
         in: query
         name: product_category_id
         type: string
-      - description: Sort by field (e.g., price, name)
-        in: query
-        name: sort_by
-        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of products
           schema:
-            items:
-              $ref: '#/definitions/models.ProductResponse'
-            type: array
-        "400":
-          description: Invalid query parameters
-          schema:
-            $ref: '#/definitions/BadRequestError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/InternalServerError'
-      summary: List products
-      tags:
-      - Products
-  /user/{id}:
-    get:
-      description: Retrieves a user's details by their unique ID.
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User data fetched successfully
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Invalid ID or user not found
-          schema:
-            $ref: '#/definitions/BadRequestError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/InternalServerError'
-      summary: Get User by ID
-      tags:
-      - Users
-  /user/register:
-    post:
-      consumes:
-      - application/json
-      description: Registers a new user account by accepting valid email and other
-        details.
-      parameters:
-      - description: User registration payload
-        in: body
-        name: userDetails
-        required: true
-        schema:
-          $ref: '#/definitions/UserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Registration successful
-          schema:
-            $ref: '#/definitions/UserRegisterSuccess'
+            $ref: '#/definitions/models.ProductResponse'
         "400":
           description: Invalid input or missing required fields
           schema:
@@ -481,70 +600,199 @@ paths:
           description: Unexpected server error
           schema:
             $ref: '#/definitions/InternalServerError'
-      summary: Register a New User
+      security:
+      - BearerAuth: []
+      summary: Get list of products
       tags:
-      - User Registration
-  /user/resend-verification:
+      - Product
     post:
       consumes:
       - application/json
-      description: Resends a verification code to the user's email address.
+      description: Creates a new product with the provided details.
       parameters:
-      - description: Email for which to resend OTP
+      - description: Product data
         in: body
-        name: request
+        name: product
         required: true
         schema:
-          $ref: '#/definitions/ResendEmailRequest'
+          $ref: '#/definitions/dtos.ProductRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: OTP sent successfully
+          description: Product created successfully
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/AddProductSuccess'
         "400":
-          description: Missing or invalid email
+          description: Invalid input or missing required fields
           schema:
             $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
         "500":
-          description: Internal server error
+          description: Unexpected server error
           schema:
             $ref: '#/definitions/InternalServerError'
-      summary: Resend Verification Code
+      security:
+      - BearerAuth: []
+      summary: Add a new product
       tags:
-      - User Registration
-  /user/verify-email:
-    post:
+      - Product
+  /product/{product_id}:
+    delete:
       consumes:
       - application/json
-      description: Verifies a user's email address using an OTP sent to their email.
+      description: Deletes a product using its unique identifier (UUID).
       parameters:
-      - description: Email and OTP
-        in: body
-        name: request
+      - description: Product ID (UUID)
+        in: path
+        name: product_id
         required: true
-        schema:
-          $ref: '#/definitions/EmailOTPRequest'
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: User verified successfully
+          description: Product deleted successfully
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/DeleteProductSuccess'
         "400":
-          description: Missing or invalid OTP/email
+          description: Invalid input or missing required fields
           schema:
             $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
         "500":
-          description: Internal server error
+          description: Unexpected server error
           schema:
             $ref: '#/definitions/InternalServerError'
-      summary: Verify Email with OTP
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Delete a product by ID
       tags:
-      - User Registration
-  /users:
+      - Product
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single product by its unique identifier (UUID).
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: product_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product details
+          schema:
+            $ref: '#/definitions/models.ProductResponse'
+        "400":
+          description: Invalid input or missing required fields
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "500":
+          description: Unexpected server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
+      summary: Get a product by ID
+      tags:
+      - Product
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates an existing product using its unique ID. Only
+        the provided fields will be updated.
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Fields to update in the product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.PatchProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated successfully
+          schema:
+            $ref: '#/definitions/UpdateProductSuccess'
+        "400":
+          description: Invalid input or missing required fields
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "500":
+          description: Unexpected server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
+      summary: Partially update a product by ID
+      tags:
+      - Product
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing product using its unique ID. All fields will
+        be updated.
+      parameters:
+      - description: Product ID (UUID)
+        in: path
+        name: product_id
+        required: true
+        type: string
+      - description: Updated product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated successfully
+          schema:
+            $ref: '#/definitions/UpdateProductSuccess'
+        "400":
+          description: Invalid input or missing required fields
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Unauthorized access attempt
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "500":
+          description: Unexpected server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
+      summary: Update a product by ID
+      tags:
+      - Product
+  /user:
     get:
       consumes:
       - application/json
@@ -568,9 +816,7 @@ paths:
         "200":
           description: List of users
           schema:
-            items:
-              $ref: '#/definitions/models.User'
-            type: array
+            $ref: '#/definitions/Success-array_UserResponse'
         "400":
           description: Invalid query parameters
           schema:
@@ -579,16 +825,18 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
       summary: Get Users with Filters
       tags:
-      - Users
-  /users/{id}:
+      - User
+  /user/{user_id}:
     delete:
       description: Deletes a user identified by the provided ID
       parameters:
       - description: User ID
         in: path
-        name: id
+        name: user_id
         required: true
         type: string
       produces:
@@ -597,7 +845,7 @@ paths:
         "200":
           description: User deleted successfully
           schema:
-            $ref: '#/definitions/DeleteUserSuccess'
+            $ref: '#/definitions/Success-DeleteUserSuccess'
         "400":
           description: Invalid input or missing required fields
           schema:
@@ -614,7 +862,35 @@ paths:
       - BearerAuth: []
       summary: Delete user by ID
       tags:
-      - Users
+      - User
+    get:
+      description: Retrieves a user's details by their unique ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User data fetched successfully
+          schema:
+            $ref: '#/definitions/Success-UserResponse'
+        "400":
+          description: Invalid ID or user not found
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
+      summary: Get User by ID
+      tags:
+      - User
     patch:
       consumes:
       - application/json
@@ -622,7 +898,7 @@ paths:
       parameters:
       - description: User ID
         in: path
-        name: id
+        name: user_id
         required: true
         type: string
       - description: Partial Update User Request
@@ -637,7 +913,7 @@ paths:
         "200":
           description: User partially updated successfully
           schema:
-            $ref: '#/definitions/UpdateUserSuccess'
+            $ref: '#/definitions/Success-UpdateUserSuccess'
         "400":
           description: Invalid input or missing required fields
           schema:
@@ -654,7 +930,7 @@ paths:
       - BearerAuth: []
       summary: Partially update user by ID
       tags:
-      - Users
+      - User
     put:
       consumes:
       - application/json
@@ -662,7 +938,7 @@ paths:
       parameters:
       - description: User ID
         in: path
-        name: id
+        name: user_id
         required: true
         type: string
       - description: Update User Request
@@ -677,7 +953,7 @@ paths:
         "200":
           description: User updated successfully
           schema:
-            $ref: '#/definitions/UpdateUserSuccess'
+            $ref: '#/definitions/Success-UpdateUserSuccess'
         "400":
           description: Invalid input or missing required fields
           schema:
@@ -694,7 +970,11 @@ paths:
       - BearerAuth: []
       summary: Update user by ID
       tags:
-      - Users
-schemes:
-- http
+      - User
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

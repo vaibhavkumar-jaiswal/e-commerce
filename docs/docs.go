@@ -10,8 +10,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Vaibhav Jaiswal",
-            "email": "vaibhav.jaiswal@gmail.com"
+            "name": "API Support",
+            "email": "jaiswal.vaibhavkumar45@gmail.com"
         },
         "license": {
             "name": "MIT",
@@ -24,11 +24,6 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Authenticates a user using email and password and returns a JWT token.",
                 "consumes": [
                     "application/json"
@@ -37,7 +32,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Authentication"
+                    "Auth"
                 ],
                 "summary": "User Login",
                 "parameters": [
@@ -55,7 +50,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Authenticated successfully with JWT token",
                         "schema": {
-                            "$ref": "#/definitions/Success-dtos_LoginResponse"
+                            "$ref": "#/definitions/Success-LoginResponse"
                         }
                     },
                     "400": {
@@ -79,189 +74,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/load-data": {
-            "get": {
-                "description": "Loads static reference data into the database from JSON files.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Preload Static Data",
-                "responses": {
-                    "200": {
-                        "description": "Data loaded successfully from JSON files",
-                        "schema": {
-                            "$ref": "#/definitions/LoadDataSuccess"
-                        }
-                    },
-                    "500": {
-                        "description": "Error occurred while loading data",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/logout": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Invalidate the user's access token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Logout user",
-                "responses": {
-                    "200": {
-                        "description": "Successfully logged out",
-                        "schema": {
-                            "$ref": "#/definitions/Success-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid or malformed request body",
-                        "schema": {
-                            "$ref": "#/definitions/BadRequestError"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials or unauthorized access",
-                        "schema": {
-                            "$ref": "#/definitions/UnauthorizedError"
-                        }
-                    },
-                    "500": {
-                        "description": "Unexpected server error",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/product/{product_id}": {
-            "get": {
-                "description": "Retrieves a product's details by their unique ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Products"
-                ],
-                "summary": "Get Product by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Product ID",
-                        "name": "product_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Product data fetched successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.ProductResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid ID or product not found",
-                        "schema": {
-                            "$ref": "#/definitions/BadRequestError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/products": {
-            "get": {
-                "description": "Retrieve a list of products with optional filters like category, sorting,\nand pagination",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Products"
-                ],
-                "summary": "List products",
-                "parameters": [
-                    {
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Number of items per page",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Product Category filter",
-                        "name": "product_category_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort by field (e.g., price, name)",
-                        "name": "sort_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.ProductResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid query parameters",
-                        "schema": {
-                            "$ref": "#/definitions/BadRequestError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/register": {
+        "/auth/register": {
             "post": {
                 "description": "Registers a new user account by accepting valid email and other details.",
                 "consumes": [
@@ -271,13 +84,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Registration"
+                    "Auth"
                 ],
                 "summary": "Register a New User",
                 "parameters": [
                     {
                         "description": "User registration payload",
-                        "name": "userDetails",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -313,7 +126,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/resend-verification": {
+        "/auth/resend-verification": {
             "post": {
                 "description": "Resends a verification code to the user's email address.",
                 "consumes": [
@@ -323,7 +136,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Registration"
+                    "Auth"
                 ],
                 "summary": "Resend Verification Code",
                 "parameters": [
@@ -341,7 +154,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OTP sent successfully",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/EmailResendResponse"
                         }
                     },
                     "400": {
@@ -359,7 +172,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/verify-email": {
+        "/auth/verify-email": {
             "post": {
                 "description": "Verifies a user's email address using an OTP sent to their email.",
                 "consumes": [
@@ -369,7 +182,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User Registration"
+                    "Auth"
                 ],
                 "summary": "Verify Email with OTP",
                 "parameters": [
@@ -405,40 +218,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/{id}": {
+        "/load-data": {
             "get": {
-                "description": "Retrieves a user's details by their unique ID.",
+                "description": "Loads static reference data into the database from JSON files.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Admin"
                 ],
-                "summary": "Get User by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Preload Static Data",
                 "responses": {
                     "200": {
-                        "description": "User data fetched successfully",
+                        "description": "Data loaded successfully from JSON files",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid ID or user not found",
-                        "schema": {
-                            "$ref": "#/definitions/BadRequestError"
+                            "$ref": "#/definitions/LoadDataSuccess"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Error occurred while loading data",
                         "schema": {
                             "$ref": "#/definitions/InternalServerError"
                         }
@@ -446,8 +244,410 @@ const docTemplate = `{
                 }
             }
         },
-        "/users": {
+        "/logout": {
+            "post": {
+                "description": "Invalidate the user's access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout user",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "schema": {
+                            "$ref": "#/definitions/Success-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or malformed request body",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials or unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/product": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of products based on optional filters such as name, price, product category ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get list of products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by product name (partial match)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Filter by product price",
+                        "name": "price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by Product Category ID (UUID)",
+                        "name": "product_category_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of products",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new product with the provided details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Add a new product",
+                "parameters": [
+                    {
+                        "description": "Product data",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/AddProductSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/{product_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a single product by its unique identifier (UUID).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get a product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID (UUID)",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product details",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing product using its unique ID. All fields will be updated.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Update a product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID (UUID)",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated product data",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/UpdateProductSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a product using its unique identifier (UUID).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Delete a product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID (UUID)",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/DeleteProductSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Partially updates an existing product using its unique ID. Only the provided fields will be updated.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Partially update a product by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Product ID (UUID)",
+                        "name": "product_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update in the product",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.PatchProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/UpdateProductSuccess"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or missing required fields",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized access attempt",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of users with optional filter/query parameters.",
                 "consumes": [
                     "application/json"
@@ -456,7 +656,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Get Users with Filters",
                 "parameters": [
@@ -483,10 +683,7 @@ const docTemplate = `{
                     "200": {
                         "description": "List of users",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.User"
-                            }
+                            "$ref": "#/definitions/Success-array_UserResponse"
                         }
                     },
                     "400": {
@@ -504,7 +701,51 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}": {
+        "/user/{user_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a user's details by their unique ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get User by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User data fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Success-UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or user not found",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -519,14 +760,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Update user by ID",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "id",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     },
@@ -544,7 +785,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/UpdateUserSuccess"
+                            "$ref": "#/definitions/Success-UpdateUserSuccess"
                         }
                     },
                     "400": {
@@ -578,14 +819,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Delete user by ID",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "id",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -594,7 +835,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/DeleteUserSuccess"
+                            "$ref": "#/definitions/Success-DeleteUserSuccess"
                         }
                     },
                     "400": {
@@ -631,14 +872,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "User"
                 ],
                 "summary": "Partially update user by ID",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "User ID",
-                        "name": "id",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     },
@@ -656,7 +897,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User partially updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/UpdateUserSuccess"
+                            "$ref": "#/definitions/Success-UpdateUserSuccess"
                         }
                     },
                     "400": {
@@ -682,6 +923,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "AddProductSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "Product added successfully."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "BadRequestError": {
             "type": "object",
             "properties": {
@@ -692,6 +946,19 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "DeleteProductSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "Product successfully deleted."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -722,6 +989,19 @@ const docTemplate = `{
                 "otp": {
                     "type": "string",
                     "example": "123456"
+                }
+            }
+        },
+        "EmailResendResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "We have sent the OTP to your Email address."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -760,11 +1040,27 @@ const docTemplate = `{
             "properties": {
                 "password": {
                     "type": "string",
-                    "example": "password123"
+                    "example": "123"
                 },
                 "username": {
                     "type": "string",
-                    "example": "john_doe"
+                    "example": "vk@gmail.com"
+                }
+            }
+        },
+        "LoginResponse": {
+            "type": "object",
+            "properties": {
+                "expiry": {
+                    "type": "string",
+                    "example": "2025-05-01T12:00:00Z"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx_adQssw5c"
+                },
+                "user_details": {
+                    "$ref": "#/definitions/UserResponse"
                 }
             }
         },
@@ -780,11 +1076,62 @@ const docTemplate = `{
                 }
             }
         },
-        "Success-dtos_LoginResponse": {
+        "Success-DeleteUserSuccess": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/dtos.LoginResponse"
+                    "$ref": "#/definitions/DeleteUserSuccess"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "Success-LoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/LoginResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "Success-UpdateUserSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/UpdateUserSuccess"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "Success-UserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/UserResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "Success-array_UserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/UserResponse"
+                    }
                 },
                 "success": {
                     "type": "boolean",
@@ -814,6 +1161,19 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "UpdateProductSuccess": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "Product upadated successfully."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -900,19 +1260,75 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.LoginResponse": {
+        "dtos.PatchProductRequest": {
             "type": "object",
             "properties": {
-                "expiry": {
+                "description": {
                     "type": "string",
-                    "example": "2025-05-01T12:00:00Z"
+                    "maxLength": 500,
+                    "minLength": 2,
+                    "example": "Updated description"
                 },
-                "token": {
+                "imageurl": {
                     "type": "string",
-                    "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx_adQssw5c"
+                    "example": "https://example.com/image.jpg"
                 },
-                "user_details": {
-                    "$ref": "#/definitions/UserResponse"
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "iPhone 14 Pro"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 1099.99
+                },
+                "product_category_id": {
+                    "type": "string",
+                    "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                },
+                "stock": {
+                    "type": "integer",
+                    "example": 50
+                }
+            }
+        },
+        "dtos.ProductRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "price",
+                "product_category_id",
+                "stock"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 2,
+                    "example": "Latest Apple smartphone"
+                },
+                "imageurl": {
+                    "type": "string",
+                    "example": "https://example.com/image.jpg"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "iPhone 14"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 999.99
+                },
+                "product_category_id": {
+                    "type": "string",
+                    "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+                },
+                "stock": {
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
@@ -1045,6 +1461,14 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -1052,10 +1476,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/",
-	Schemes:          []string{"http"},
+	BasePath:         "/api/v1",
+	Schemes:          []string{},
 	Title:            "E-Commerce API",
-	Description:      "This is the API documentation for E-Commerce",
+	Description:      "API for managing products and orders.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

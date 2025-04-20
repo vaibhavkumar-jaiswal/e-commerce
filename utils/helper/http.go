@@ -15,7 +15,7 @@ import (
 // BindAndValidate binds JSON, query, or path params to the struct and validates it
 func BindAndValidate[T any](context *gin.Context) (T, map[string]string) {
 	var data T
-	if err := context.ShouldBindJSON(&data); err != nil {
+	if err := context.ShouldBind(&data); err != nil {
 		return data, map[string]string{"error": "invalid request format"}
 	}
 
@@ -42,6 +42,33 @@ func ResponseWriter[T any](cxt *gin.Context, status int, data T) {
 		}
 	}
 	cxt.JSON(status, response)
+}
+
+// HandleUpdateAndPatch handles update and partial update
+func HandleUpdateAndPatch[T any](
+	key string,
+	context *gin.Context,
+	updateService func(string, T) (string, error),
+) {
+	id := context.Param(key)
+	if id == "" {
+		ResponseWriter(context, http.StatusBadRequest, "Invalid ID.")
+		return
+	}
+
+	request, err := BindAndValidate[T](context)
+	if err != nil {
+		ResponseWriter(context, http.StatusBadRequest, err)
+		return
+	}
+
+	message, updateErr := updateService(id, request)
+	if updateErr != nil {
+		ResponseWriter(context, http.StatusBadRequest, updateErr.Error())
+		return
+	}
+
+	ResponseWriter(context, http.StatusOK, message)
 }
 
 // BuildQuery builds a GORM query based on the provided filter struct.

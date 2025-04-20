@@ -8,10 +8,8 @@ import (
 	"e-commerce/models"
 	"e-commerce/modules/user/dtos"
 	"e-commerce/modules/user/repository"
-	"e-commerce/services"
 	"e-commerce/utils/helper"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -98,55 +96,6 @@ func (service *Service) GetUsers(queryParams *dtos.UserQueryParams) ([]models.Us
 	}
 
 	return models.UserList(users).ResponseList(), nil
-}
-
-// AddUser creates a new user in the system and sends an email verification OTP.
-// It populates the user data from the request, generates a password,
-// and caches an OTP before sending it asynchronously.
-//
-// Parameters:
-//
-//	request (models.UserRequest): The user data for registration.
-//
-// Returns:
-//
-//	string: A success message instructing the user to verify their email.
-//	error: An error if the creation or OTP email sending fails.
-func (service *Service) AddUser(request dtos.UserRequest) (string, error) {
-	user := models.User{
-		FirstName: request.FirstName,
-		LastName:  request.LastName,
-		Email:     request.Email,
-		Phone:     request.Phone,
-		RoleID:    request.RoleID,
-		UserPassword: models.UserPassword{
-			Password: helper.GeneratePassword(),
-		},
-	}
-	err := service.userRepo.Create(&user)
-	if err != nil {
-		if pgErr, ok := err.(*pq.Error); ok {
-			return "", fmt.Errorf(pgErr.Detail)
-		}
-		return "", err
-	}
-
-	otp := helper.GenerateSecureOTP()
-	isHTML := true
-	subject, emailBody := helper.GetEmailVerificationFormat(user.FullName(), otp, isHTML)
-
-	_, err = helper.SetCache(user.Email, otp, time.Duration(helper.OtpExpTime)*time.Minute)
-	if err != nil {
-		return "", err
-	}
-
-	go func() {
-		if err := services.SMTPServer.SendEmail(user.Email, subject, emailBody, isHTML); err != nil {
-			fmt.Printf("failed to send email to %s: %v", user.Email, err)
-		}
-	}()
-
-	return "We have sent the OTP to your Email address.", nil
 }
 
 // UpdateUser updates an existing user's information based on the provided user ID and new data.
