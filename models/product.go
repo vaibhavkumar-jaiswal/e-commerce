@@ -11,13 +11,13 @@ import (
 type Product struct {
 	base.Model        `swaggerignore:"true"`
 	ProductID         uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"product_id"`
-	Name              string          `gorm:"size:100;not null" validate:"required"`
-	Description       string          `gorm:"type:text"`
-	Price             float64         `gorm:"not null" validate:"required"`
-	ProductCategoryID uuid.UUID       `gorm:"type:uuid;not null" validate:"required"`
-	Category          ProductCategory `gorm:"foreignKey:ProductCategoryID;references:ProductCategoryID"`
-	Stock             int             `gorm:"not null" validate:"required"`
-	ImageURL          string          `gorm:"size:255"`
+	Name              string          `gorm:"size:100;not null" validate:"required" json:"name"`
+	Description       string          `gorm:"type:text" json:"description"`
+	Price             float64         `gorm:"not null" validate:"required" json:"price"`
+	ProductCategoryID uuid.UUID       `gorm:"type:uuid;not null" validate:"required" json:"product_category_id"`
+	Category          ProductCategory `gorm:"foreignKey:ProductCategoryID;references:ProductCategoryID" json:"-"`
+	Stock             int             `gorm:"not null" validate:"required" json:"stock"`
+	ImageURL          string          `gorm:"size:255" json:"image_url"`
 }
 
 // TableName sets custom table name for Product model
@@ -30,14 +30,14 @@ type ProductList []Product
 
 // ProductResponse defines how product data is returned to clients
 type ProductResponse struct {
-	ProductID         uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"product_id"`
-	Name              string          `gorm:"size:100;not null"`
-	Description       string          `gorm:"type:text"`
-	Price             float64         `gorm:"not null"`
-	ProductCategoryID uuid.UUID       `gorm:"type:uuid;not null"`
-	Category          ProductCategory `gorm:"foreignKey:ProductCategoryID;references:ProductCategoryID"`
-	Stock             int             `gorm:"not null"`
-	ImageURL          string          `gorm:"size:255"`
+	ProductID         uuid.UUID       `json:"product_id"`
+	Name              string          `json:"name"`
+	Description       string          `json:"description"`
+	Price             float64         `json:"price"`
+	ProductCategoryID uuid.UUID       `json:"product_category_id"`
+	Category          ProductCategory `json:"-"`
+	Stock             int             `json:"stock"`
+	ImageURL          string          `json:"image_url"`
 }
 
 // ResponseObj formats a single product to ProductResponse

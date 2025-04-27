@@ -2,7 +2,9 @@
 package helper
 
 import (
+	"e-commerce/models"
 	"e-commerce/shared"
+	"e-commerce/utils/constants"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -24,6 +26,17 @@ func BindAndValidate[T any](context *gin.Context) (T, map[string]string) {
 		return data, errorsMap
 	}
 	return data, nil
+}
+
+func GetUserDetails(context *gin.Context) models.UserResponse {
+	userDetails, exists := context.Get(constants.UserDataContextKey)
+	if exists {
+		user, ok := userDetails.(models.UserResponse)
+		if ok {
+			return user
+		}
+	}
+	return models.UserResponse{}
 }
 
 // ResponseWriter is used to write the response to the client.

@@ -29,9 +29,14 @@ func (User) TableName() string {
 	return "users"
 }
 
-// IsAdmin sets custom table name for User model
+// IsAdmin returns if the user is Admin or not
 func (user User) IsAdmin() bool {
 	return user.Role.Code == constants.AdminRoleCode
+}
+
+// FullName returns the concatenated full name of the user
+func (user User) FullName() string {
+	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 }
 
 // UserList defines a slice of User
@@ -46,6 +51,7 @@ type UserResponse struct {
 	Email     string    `json:"email" example:"john.doe@gmail.com"`
 	Phone     string    `json:"phone" example:"1234567890"`
 	RoleID    uuid.UUID `json:"role_id" example:"97d699c0-24ff-48dc-b64a-c29353fa8865"`
+	RoleCode  string    `json:"role_code" example:"ADM"`
 } //@name UserResponse
 
 // ResponseObj formats a single user to UserResponse
@@ -58,6 +64,7 @@ func (user User) ResponseObj() UserResponse {
 		Email:     user.Email,
 		Phone:     user.Phone,
 		RoleID:    user.RoleID,
+		RoleCode:  user.Role.Code,
 	}
 
 	return result
@@ -72,7 +79,17 @@ func (userList UserList) ResponseList() []UserResponse {
 	return result
 }
 
-// FullName returns the concatenated full name of the user
-func (user *User) FullName() string {
-	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+// IsAdmin returns if the user is Admin or not
+func (user UserResponse) IsAdmin() bool {
+	return user.RoleCode == constants.AdminRoleCode
+}
+
+// IsSeller returns if the user is Seller or not
+func (user UserResponse) IsSeller() bool {
+	return user.RoleCode == constants.SellerRoleCode
+}
+
+// IsCustomer returns if the user is Customer or not
+func (user UserResponse) IsCustomer() bool {
+	return user.RoleCode == constants.CustomerRoleCode
 }

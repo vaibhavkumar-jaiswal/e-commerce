@@ -1,5 +1,5 @@
-// Package auth JWT-based authentication middleware for Gin
-package auth
+// Package authentication JWT-based authentication middleware for Gin
+package authentication
 
 import (
 	"encoding/json"

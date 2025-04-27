@@ -75,7 +75,7 @@ func (handler *Handler) Login(context *gin.Context) {
 //	@Failure		401	{object}	shared.UnauthorizedError		"Invalid credentials or unauthorized access"
 //	@Failure		500	{object}	shared.InternalServerError		"Unexpected server error"
 //
-//	@Router			/logout [post]
+//	@Router			/auth/logout [post]
 func (handler *Handler) Logout(context *gin.Context) {
 
 	tokenParts := strings.SplitN(context.GetHeader("Authorization"), " ", 2)

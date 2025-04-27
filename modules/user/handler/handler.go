@@ -58,6 +58,32 @@ func (handler *Handler) GetUserByID(context *gin.Context) {
 	helper.ResponseWriter(context, http.StatusOK, user)
 }
 
+// UserProfile godoc
+//
+//	@Summary		Get User profile
+//	@Description	Retrieves a user's details.
+//	@Tags			Profile
+//	@Security		BearerAuth
+//	@Produce		json
+//
+//	@Success		200	{object}	shared.SuccessResponse[models.UserResponse]	"Profile data fetched successfully"
+//
+//	@Failure		400	{object}	shared.BadRequestError						"user not found"
+//	@Failure		500	{object}	shared.InternalServerError					"Internal server error"
+//
+//	@Router			/profile [get]
+func (handler *Handler) UserProfile(context *gin.Context) {
+
+	userDetails := helper.GetUserDetails(context)
+	user, err := handler.service.GetUserByID(userDetails.UserID.String())
+	if err != nil {
+		helper.ResponseWriter(context, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseWriter(context, http.StatusOK, user)
+}
+
 // GetUsers godoc
 //
 //	@Summary		Get Users with Filters

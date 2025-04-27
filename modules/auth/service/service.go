@@ -11,6 +11,7 @@ import (
 	"e-commerce/services"
 	"e-commerce/utils/constants"
 	"e-commerce/utils/helper"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -49,7 +50,7 @@ func (service *Service) Login(data dtos.Login) (any, error) {
 	join := "INNER JOIN user_passwords ON users.user_id = user_passwords.user_id"
 	condition := "users.email = ? AND user_passwords.password = ? AND users.is_verified = true"
 
-	relations := []string{"Role"}
+	relations := []string{"Role", "Role.Permissions"}
 	userList, err := service.userRepo.FindAllByConditionWithJoin(relations, join, condition, data.UserName, data.Password)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
@@ -57,9 +58,13 @@ func (service *Service) Login(data dtos.Login) (any, error) {
 		}
 		return nil, err
 	}
+
 	if len(userList) < 1 {
 		return nil, fmt.Errorf("invalid User credentials")
 	}
+
+	abc, _ := json.MarshalIndent(userList, "", "  ")
+	fmt.Println(string(abc))
 
 	user := userList[0].ResponseObj()
 

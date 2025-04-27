@@ -32,7 +32,9 @@ func PreLoadDataHandler(context *gin.Context) {
 		"parent_product_category",
 		"child_product_category",
 		"address_type",
-		"user_role",
+		"role",
+		"permissions",
+		"role_permissions",
 		"user",
 	}
 
@@ -40,7 +42,9 @@ func PreLoadDataHandler(context *gin.Context) {
 		"parent_product_category": models.ProductCategory{},
 		"child_product_category":  models.ProductCategory{},
 		"address_type":            models.AddressType{},
-		"user_role":               models.Role{},
+		"role":                    models.Role{},
+		"permissions":             models.Permission{},
+		"role_permissions":        models.RolePermission{},
 		"user":                    models.User{},
 	}
 

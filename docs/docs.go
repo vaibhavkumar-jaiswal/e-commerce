@@ -74,6 +74,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "description": "Invalidate the user's access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout user",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "schema": {
+                            "$ref": "#/definitions/Success-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or malformed request body",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials or unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Registers a new user account by accepting valid email and other details.",
@@ -237,47 +278,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error occurred while loading data",
-                        "schema": {
-                            "$ref": "#/definitions/InternalServerError"
-                        }
-                    }
-                }
-            }
-        },
-        "/logout": {
-            "post": {
-                "description": "Invalidate the user's access token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Logout user",
-                "responses": {
-                    "200": {
-                        "description": "Successfully logged out",
-                        "schema": {
-                            "$ref": "#/definitions/Success-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid or malformed request body",
-                        "schema": {
-                            "$ref": "#/definitions/BadRequestError"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials or unauthorized access",
-                        "schema": {
-                            "$ref": "#/definitions/UnauthorizedError"
-                        }
-                    },
-                    "500": {
-                        "description": "Unexpected server error",
                         "schema": {
                             "$ref": "#/definitions/InternalServerError"
                         }
@@ -634,6 +634,43 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Unexpected server error",
+                        "schema": {
+                            "$ref": "#/definitions/InternalServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a user's details.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get User profile",
+                "responses": {
+                    "200": {
+                        "description": "Profile data fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Success-UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "user not found",
+                        "schema": {
+                            "$ref": "#/definitions/BadRequestError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/InternalServerError"
                         }
@@ -1250,6 +1287,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "1234567890"
                 },
+                "role_code": {
+                    "type": "string",
+                    "example": "ADM"
+                },
                 "role_id": {
                     "type": "string",
                     "example": "97d699c0-24ff-48dc-b64a-c29353fa8865"
@@ -1332,28 +1373,19 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ProductCategory": {
+        "models.Permission": {
             "type": "object",
             "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ProductCategory"
-                    }
+                "action": {
+                    "type": "string"
                 },
                 "code": {
                     "type": "string"
                 },
-                "description": {
+                "module": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "parent_id": {
-                    "type": "string"
-                },
-                "product_category_id": {
+                "permission_id": {
                     "type": "string"
                 }
             }
@@ -1361,13 +1393,10 @@ const docTemplate = `{
         "models.ProductResponse": {
             "type": "object",
             "properties": {
-                "category": {
-                    "$ref": "#/definitions/ProductCategory"
-                },
                 "description": {
                     "type": "string"
                 },
-                "imageURL": {
+                "image_url": {
                     "type": "string"
                 },
                 "name": {
@@ -1376,7 +1405,7 @@ const docTemplate = `{
                 "price": {
                     "type": "number"
                 },
-                "productCategoryID": {
+                "product_category_id": {
                     "type": "string"
                 },
                 "product_id": {
@@ -1398,6 +1427,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
                 },
                 "role_id": {
                     "type": "string"

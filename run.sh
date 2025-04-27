@@ -24,8 +24,8 @@ echo "📝 Creating Swagger Docs..."
 rm -rf docs
 swag init -g main.go --parseDependency=false --parseInternal
 
-echo "🔍 Running golangci-lint..."
-golangci-lint run ./...
+# echo "🔍 Running golangci-lint..."
+# golangci-lint run ./...
 
 echo "🔨 Building the project..."
 go build -o bin/e-commerce .

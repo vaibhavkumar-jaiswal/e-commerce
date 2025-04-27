@@ -12,10 +12,14 @@ import (
 func RunMigrations(dbModels ...string) error {
 	db := connections.GetDB()
 
+	if err := db.SetupJoinTable(&models.Role{}, "Permissions", &models.RolePermission{}); err != nil {
+		return fmt.Errorf("failed to set up join table: %w", err)
+	}
+
 	modelMap := map[string]any{
-		"Module":          &models.Module{},
 		"Permission":      &models.Permission{},
 		"Role":            &models.Role{},
+		"RolePermission":  &models.RolePermission{},
 		"User":            &models.User{},
 		"ProductCategory": &models.ProductCategory{},
 		"Product":         &models.Product{},
@@ -25,9 +29,9 @@ func RunMigrations(dbModels ...string) error {
 	}
 
 	modelSequence := []string{
-		"Module",
 		"Permission",
 		"Role",
+		"RolePermission",
 		"User",
 		"ProductCategory",
 		"Product",

@@ -227,6 +227,9 @@ definitions:
       phone:
         example: "1234567890"
         type: string
+      role_code:
+        example: ADM
+        type: string
       role_id:
         example: 97d699c0-24ff-48dc-b64a-c29353fa8865
         type: string
@@ -289,38 +292,30 @@ definitions:
     - product_category_id
     - stock
     type: object
-  models.ProductCategory:
+  models.Permission:
     properties:
-      children:
-        items:
-          $ref: '#/definitions/models.ProductCategory'
-        type: array
+      action:
+        type: string
       code:
         type: string
-      description:
+      module:
         type: string
-      name:
-        type: string
-      parent_id:
-        type: string
-      product_category_id:
+      permission_id:
         type: string
     type: object
   models.ProductResponse:
     properties:
-      category:
-        $ref: '#/definitions/ProductCategory'
       description:
         type: string
-      imageURL:
+      image_url:
         type: string
       name:
         type: string
       price:
         type: number
-      product_id:
+      product_category_id:
         type: string
-      productCategoryID:
+      product_id:
         type: string
       stock:
         type: integer
@@ -333,6 +328,10 @@ definitions:
         type: string
       name:
         type: string
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
       role_id:
         type: string
     type: object
@@ -421,6 +420,33 @@ paths:
           schema:
             $ref: '#/definitions/InternalServerError'
       summary: User Login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate the user's access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            $ref: '#/definitions/Success-string'
+        "400":
+          description: Invalid or malformed request body
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "401":
+          description: Invalid credentials or unauthorized access
+          schema:
+            $ref: '#/definitions/UnauthorizedError'
+        "500":
+          description: Unexpected server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      summary: Logout user
       tags:
       - Auth
   /auth/register:
@@ -535,33 +561,6 @@ paths:
       summary: Preload Static Data
       tags:
       - Admin
-  /logout:
-    post:
-      consumes:
-      - application/json
-      description: Invalidate the user's access token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully logged out
-          schema:
-            $ref: '#/definitions/Success-string'
-        "400":
-          description: Invalid or malformed request body
-          schema:
-            $ref: '#/definitions/BadRequestError'
-        "401":
-          description: Invalid credentials or unauthorized access
-          schema:
-            $ref: '#/definitions/UnauthorizedError'
-        "500":
-          description: Unexpected server error
-          schema:
-            $ref: '#/definitions/InternalServerError'
-      summary: Logout user
-      tags:
-      - Auth
   /product:
     get:
       consumes:
@@ -792,6 +791,29 @@ paths:
       summary: Update a product by ID
       tags:
       - Product
+  /profile:
+    get:
+      description: Retrieves a user's details.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile data fetched successfully
+          schema:
+            $ref: '#/definitions/Success-UserResponse'
+        "400":
+          description: user not found
+          schema:
+            $ref: '#/definitions/BadRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/InternalServerError'
+      security:
+      - BearerAuth: []
+      summary: Get User profile
+      tags:
+      - Profile
   /user:
     get:
       consumes:
